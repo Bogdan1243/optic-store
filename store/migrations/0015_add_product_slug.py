@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='product',
             name='slug',
-            field=models.SlugField(blank=True, default='', max_length=200),
+            field=models.SlugField(blank=True, default='', max_length=200, db_index=False),
             preserve_default=False,
         ),
         # Step 2: Populate slugs for all existing products
