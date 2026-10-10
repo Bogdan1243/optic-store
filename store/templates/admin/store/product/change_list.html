@@ -1,0 +1,63 @@
+{% extends "admin/change_list.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .custom-delete-btn {
+            background-color: #dc2626 !important;
+            color: white !important;
+            border-radius: 4px;
+            padding: 5px 12px;
+            margin-left: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .custom-delete-btn:hover {
+            background-color: #b91c1c !important;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const actionsContainer = document.querySelector('.actions');
+            if (actionsContainer) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'custom-delete-btn';
+                deleteBtn.innerHTML = '🗑️ Delete Selected';
+                deleteBtn.title = 'Delete all selected products';
+                deleteBtn.onclick = function(e) {
+                    e.preventDefault();
+                    const actionSelect = document.querySelector('select[name="action"]');
+                    const goButton = document.querySelector('button[title="Run the selected action"], button[name="index"][value="0"]');
+                    
+                    // Check if any items are selected
+                    const selectedCheckboxes = document.querySelectorAll('.action-select:checked');
+                    if (selectedCheckboxes.length === 0) {
+                        alert('Please select at least one product to delete.');
+                        return;
+                    }
+
+                    if (actionSelect && goButton) {
+                        actionSelect.value = 'delete_selected';
+                        goButton.click();
+                    }
+                };
+                actionsContainer.appendChild(deleteBtn);
+            }
+        });
+    </script>
+{% endblock %}
+{% block object-tools-items %}
+    <li>
+        <a href="download-template/" class="historylink" style="background: #4b5563; color: white; border-radius: 4px; padding: 6px 12px;">
+            📥 Download XLSX Template
+        </a>
+    </li>
+    <li>
+        <a href="import-excel/" class="addlink" style="background: #2563eb; color: white; border-radius: 4px; padding: 6px 12px;">
+            📊 Import Products (XLSX)
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

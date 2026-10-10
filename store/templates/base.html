@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imagister</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script> 
+    <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.13/dist/lenis.css">
+<style>
+/* 🪄 SMOOTH SCROLLING */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* 🪄 PREMIUM BUTTONS */
+.btn-premium {
+    background-color: #000;
+    color: #fff;
+    border-radius: 0;
+    padding: 14px 28px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-premium:hover {
+    background-color: #222;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.btn-premium:active {
+    transform: translateY(0);
+}
+
+/* 🪄 PREMIUM TYPOGRAPHY */
+.premium-heading {
+    font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.5px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #333;
+    background-color: #fcfcfc;
+}
+
+/* 🪄 MAGIC FLY-OUT MENUS */
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -5px;
+    display: none; /* Hide by default */
+}
+
+/* Show the submenu when hovering over the parent item */
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Tiny arrow indicator for submenu items */
+.dropdown-submenu > a::after {
+    content: "›";
+    float: right;
+    font-size: 1.2rem;
+    line-height: 0.8;
+    margin-left: 15px;
+}
+</style>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container-fluid px-4 px-xl-5 mt-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+{% block content %}
+{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const lenis = new Lenis()
+
+    function raf(time) {
+      lenis.raf(time)
+      requestAnimationFrame(raf)
+    }
+
+    requestAnimationFrame(raf)
+</script>
+
+<footer class="bg-dark text-white pt-5 pb-3 mt-5">
+    <div class="container-fluid px-4 px-xl-5">
+        <div class="row g-4 text-center text-md-start">
+
+            <div class="col-md-4">
+                <h5 class="text-uppercase mb-3 fw-light" style="letter-spacing: 3px;">Imagister</h5>
+                <p class="small text-white-50 pe-md-4">Redefinim vederea prin ochelari premium, tehnologie AR de ultimă generație și servicii de excepție.</p>
+            </div>
+
+            <div class="col-md-4">
+                <h6 class="text-uppercase mb-3" style="letter-spacing: 1.5px;">Asistență Clienți</h6>
+                <ul class="list-unstyled small text-white-50">
+                    <li class="mb-2"><a href="{% url 'contact' %}" class="text-white-50 text-decoration-none">Contactează-ne</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Livrare & Returnări</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Întrebări Frecvente (FAQ)</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-4">
+                <h6 class="text-uppercase mb-3" style="letter-spacing: 1.5px;">Boutique Principal</h6>
+                <ul class="list-unstyled small text-white-50">
+                    <li class="mb-2">Piața Unirii Nr. 1</li>
+                    <li class="mb-2">Timișoara, TM 300085</li>
+                    <li class="mb-2 mt-3">Luni-Sâmbătă: 10:00 - 20:00</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <hr class="border-secondary mt-5 mb-4">
+
+        <div class="text-center small text-white-50" style="letter-spacing: 1px;">
+            &copy; {% now "Y" %} Imagister. Toate drepturile rezervate.
+        </div>
+    </div>
+</footer>
+</body>
+</html>

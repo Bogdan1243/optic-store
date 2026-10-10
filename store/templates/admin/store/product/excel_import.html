@@ -1,0 +1,108 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .import-card {
+        max-width: 650px;
+        margin: 40px auto;
+        padding: 30px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid #e5e7eb;
+    }
+    .import-header {
+        border-bottom: 2px solid #f3f4f6;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+    .import-header h2 {
+        margin: 0;
+        color: #111827;
+        font-size: 1.5rem;
+    }
+    .form-group {
+        margin-bottom: 24px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+    .form-group .help-text {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 6px;
+        line-height: 1.4;
+    }
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: #f9fafb;
+        box-sizing: border-box;
+    }
+    .btn-submit {
+        background: #2563eb;
+        color: #ffffff;
+        padding: 11px 22px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+    .btn-submit:hover {
+        background: #1d4ed8;
+    }
+    .btn-cancel {
+        background: #9ca3af;
+        color: white;
+        padding: 11px 22px;
+        border-radius: 6px;
+        text-decoration: none;
+        margin-left: 10px;
+        display: inline-block;
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="import-card">
+    <div class="import-header">
+        <h2>📊 Bulk Import Products via Excel (.xlsx)</h2>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="excel_file">Excel Spreadsheet File (.xlsx) *</label>
+            <input type="file" name="excel_file" id="excel_file" accept=".xlsx" class="form-control" required>
+            <div class="help-text">Upload your populated product template spreadsheet. Must include required columns: brand, color, size, price.</div>
+        </div>
+
+        <div class="form-group">
+            <label for="zip_file">Product Images ZIP Package (.zip) — Optional</label>
+            <input type="file" name="zip_file" id="zip_file" accept=".zip" class="form-control">
+            <div class="help-text">ZIP archive containing all product photos (main image, AR front-view image, and gallery images) referenced in your spreadsheet filenames.</div>
+        </div>
+
+        <div style="margin-top: 32px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <button type="submit" class="btn-submit">🚀 Start Product Import</button>
+                <a href="../" class="btn-cancel">Cancel</a>
+            </div>
+            <a href="../download-template/" style="color: #2563eb; font-weight: 600; text-decoration: underline;">
+                📥 Download Template (.xlsx)
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

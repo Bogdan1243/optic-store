@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container py-5" style="min-height: 70vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <h2 class="premium-heading display-4 text-center mb-5">CONTUL MEU</h2>
+            
+            <div class="card border-0 shadow-sm rounded-0">
+                <div class="card-body p-5">
+                    <h5 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 1px;">Detalii Profil</h5>
+
+                    <div class="row mb-3 align-items-center border-bottom pb-3">
+                        <div class="col-sm-4 text-muted text-uppercase small" style="letter-spacing: 1px;">Nume Complet</div>
+                        <div class="col-sm-8 fs-5">{{ user.first_name }} {{ user.last_name }}</div>
+                    </div>
+
+                    <div class="row mb-3 align-items-center border-bottom pb-3">
+                        <div class="col-sm-4 text-muted text-uppercase small" style="letter-spacing: 1px;">Adresă Email</div>
+                        <div class="col-sm-8 fs-5">{{ user.email }}</div>
+                    </div>
+
+                    <div class="row mb-4 align-items-center">
+                        <div class="col-sm-4 text-muted text-uppercase small" style="letter-spacing: 1px;">Membru Din</div>
+                        <div class="col-sm-8">{{ user.date_joined|date:"d.m.Y" }}</div>
+                    </div>
+
+                    <div class="d-flex flex-wrap justify-content-center gap-3 mt-5">
+                        <a href="{% url 'home' %}" class="btn btn-dark px-5 py-3 text-uppercase rounded-0" style="letter-spacing: 1px;">
+                            Înapoi la Magazin
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-dark px-5 py-3 text-uppercase rounded-0" style="letter-spacing: 1px;">
+                            Deconectare
+                        </a>
+                    </div>
+                    <h5 class="fw-bold mb-4 mt-5 text-uppercase" style="letter-spacing: 1px;">Istoric Comenzi</h5>
+
+            <div class="card border-0 shadow-sm rounded-0">
+                <div class="card-body p-4">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="text-muted small text-uppercase" style="letter-spacing: 1px;">
+                                    <tr>
+                                        <th class="border-0 pb-3">Comandă #</th>
+                                        <th class="border-0 pb-3">Data</th>
+                                        <th class="border-0 pb-3">Total</th>
+                                        <th class="border-0 pb-3">Stare</th>
+                                    </tr>
+                                </thead>
+                               <tbody>
+                                    {% for order in orders %}
+
+                                    <tr class="border-bottom">
+                                        <td class="fw-bold py-4 align-middle">#{{ order.id }}</td>
+                                        <td class="py-4 align-middle">{{ order.date_ordered|date:"d.m.Y" }}</td>
+                                        <td class="py-4 align-middle">{{ order.amount_paid }} RON</td>
+                                        <td class="py-4 align-middle">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                {% if order.paid %}
+                                                    <span class="badge bg-success rounded-0 px-2 py-1 fw-normal" style="letter-spacing: 1px;">Plătit</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark rounded-0 px-2 py-1 fw-normal" style="letter-spacing: 1px;">În așteptare</span>
+                                                {% endif %}
+
+                                                <button class="btn btn-sm btn-outline-dark rounded-0" type="button" data-bs-toggle="collapse" data-bs-target="#orderItems{{ order.id }}" aria-expanded="false">
+                                                    Vezi Detalii ▾
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="collapse border-bottom" id="orderItems{{ order.id }}">
+                                        <td colspan="4" class="p-0 border-0">
+                                            <div class="bg-light p-4">
+                                                <h6 class="fw-bold text-uppercase mb-3 text-muted" style="letter-spacing: 1px; font-size: 0.8rem;">Produse în Comanda #{{ order.id }}</h6>
+
+                                                {% for item in order.orderitem_set.all %}
+                                                <div class="d-flex mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+
+                                                    {% if item.product.get_image_url %}
+                                                        <img src="{{ item.product.get_image_url }}" alt="{{ item.product.brand }}" class="img-fluid rounded-3 me-3 border" style="width: 70px; height: 70px; object-fit: contain; background: #fff;">
+                                                    {% else %}
+                                                        <div class="rounded-3 me-3 border d-flex align-items-center justify-content-center text-muted small" style="width: 70px; height: 70px; background: #fff;">Fără foto</div>
+                                                    {% endif %}
+
+                                                    <div>
+                                                        <strong>{{ item.product.brand }}</strong> <span class="text-muted small">(Cantitate: {{ item.quantity }})</span>
+
+                                                        {% if item.pd %}
+                                                        <div class="mt-2 p-3 rounded-2 shadow-sm" style="background-color: #fff; font-size: 0.75rem; border: 1px solid #dee2e6;">
+                                                            <strong class="text-uppercase mb-1 d-block" style="letter-spacing: 0.5px; color: #333;">Lentile cu Rețetă</strong>
+                                                            <span class="text-muted">
+                                                                <strong>OD (Drept):</strong> SPH {{ item.od_sph|default:"0.00" }} | CYL {{ item.od_cyl|default:"0.00" }} | AXIS {{ item.od_axis|default:"0" }}<br>
+                                                                <strong>OS (Stâng):</strong> SPH {{ item.os_sph|default:"0.00" }} | CYL {{ item.os_cyl|default:"0.00" }} | AXIS {{ item.os_axis|default:"0" }}<br>
+                                                                <strong class="text-dark">PD:</strong> {{ item.pd }}mm
+                                                            </span>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                </div>
+                                                {% endfor %}
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-3">Nu ai plasat încă nicio comandă.</p>
+                            <a href="{% url 'shop' %}" class="btn btn-outline-dark rounded-0 px-4 text-uppercase" style="letter-spacing: 1px; font-size: 0.8rem;">Începe Cumpărăturile</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

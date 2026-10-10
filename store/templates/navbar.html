@@ -1,0 +1,149 @@
+{% load static %}
+<style>
+  .mega-menu-dropdown {
+    width: 780px;
+    left: 0;
+    right: auto;
+    border: 1px solid rgba(0,0,0,0.08);
+    background-color: #ffffff;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    border-radius: 8px;
+    margin-top: 0;
+  }
+  @media (max-width: 991.98px) {
+    .mega-menu-dropdown {
+      width: 100% !important;
+      position: static !important;
+      box-shadow: none !important;
+      border: none !important;
+      background: transparent !important;
+    }
+  }
+  .mega-menu-heading {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid #111;
+  }
+  .mega-menu-link {
+    color: #555;
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: block;
+    padding: 0.3rem 0;
+    transition: all 0.2s ease;
+    text-transform: none;
+    font-weight: 500;
+  }
+  .mega-menu-link:hover {
+    color: #000;
+    padding-left: 4px;
+    font-weight: 600;
+  }
+  @media (min-width: 992px) {
+    .nav-item.dropdown:hover .mega-menu-dropdown {
+      display: block;
+    }
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white py-4 border-bottom sticky-top">
+  <div class="container-fluid px-4 px-xl-5 position-relative">
+
+    <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse w-100" id="navbarNav">
+      <ul class="navbar-nav w-100 justify-content-start text-uppercase small fw-bold" style="letter-spacing: 1.5px;">
+        
+        <!-- Dropdown Colecție -->
+        <li class="nav-item dropdown pe-4">
+          <a class="nav-link dropdown-toggle px-0 text-dark" href="{% url 'shop' %}" id="collectionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Colecție
+          </a>
+          <div class="dropdown-menu mega-menu-dropdown p-4 border-0 shadow-lg" aria-labelledby="collectionDropdown">
+            <div class="row g-4">
+              
+              <!-- Column 1: General -->
+              <div class="col-lg-3 col-12">
+                <div class="mega-menu-heading">General</div>
+                <a class="mega-menu-link fw-bold text-dark" href="{% url 'shop' %}">🕶️ Toți Ochelarii</a>
+                <a class="mega-menu-link" href="{% url 'category' 'OPT' %}">👓 Rame de Vedere</a>
+                <a class="mega-menu-link" href="{% url 'category' 'SUN' %}">☀️ Ochelari de Soare</a>
+              </div>
+
+              <!-- Column 2: Rame (Ochelari de Vedere) -->
+              <div class="col-lg-3 col-12">
+                <div class="mega-menu-heading">Rame Vedere</div>
+                <a class="mega-menu-link fw-bold text-dark" href="{% url 'category' 'OPT' %}">Toate Ramele</a>
+                {% for b in nav_opt_brands %}
+                <a class="mega-menu-link" href="{% url 'category' 'OPT' %}?brand={{ b|urlencode }}">{{ b }}</a>
+                {% endfor %}
+              </div>
+
+              <!-- Column 3: Ochelari de Soare -->
+              <div class="col-lg-3 col-12">
+                <div class="mega-menu-heading">Ochelari de Soare</div>
+                <a class="mega-menu-link fw-bold text-dark" href="{% url 'category' 'SUN' %}">Toți Ochelarii de Soare</a>
+                {% for b in nav_sun_brands %}
+                <a class="mega-menu-link" href="{% url 'category' 'SUN' %}?brand={{ b|urlencode }}">{{ b }}</a>
+                {% endfor %}
+              </div>
+
+              <!-- Column 4: Gen -->
+              <div class="col-lg-3 col-12">
+                <div class="mega-menu-heading">Gen</div>
+                <a class="mega-menu-link" href="{% url 'filter_by_sex' 'Men' %}">👨 Bărbați</a>
+                <a class="mega-menu-link" href="{% url 'filter_by_sex' 'Women' %}">👩 Femei</a>
+                <a class="mega-menu-link" href="{% url 'filter_by_sex' 'Unisex' %}">👫 Unisex</a>
+              </div>
+
+            </div>
+          </div>
+        </li>
+
+        <li class="nav-item pe-4">
+          <a class="nav-link px-0 text-dark" href="{% url 'about' %}">Despre Noi</a>
+        </li>
+        <li class="nav-item pe-4">
+          <a class="nav-link px-0 text-dark" href="{% url 'contact' %}">Contact</a>
+        </li>
+
+        <li class="nav-item d-lg-none mt-3 pt-3 border-top">
+          {% if user.is_authenticated %}
+            <a class="nav-link px-0 text-dark" href="{% url 'profile' %}">Cont ({{ user.username }})</a>
+            <a class="nav-link px-0 text-muted" href="{% url 'logout' %}">Deconectare</a>
+          {% else %}
+            <a class="nav-link px-0 text-dark" href="{% url 'login' %}">Autentificare</a>
+            <a class="nav-link px-0 text-dark" href="{% url 'register' %}">Înregistrare</a>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
+
+    <a class="navbar-brand mx-auto d-flex align-items-center justify-content-center gap-3 text-decoration-none" href="{% url 'home' %}" style="position: absolute; left: 50%; transform: translateX(-50%);">
+      <img src="{% static 'images/logo.svg' %}" alt="Imagister" style="height: 56px; width: auto; object-fit: contain; vertical-align: middle; transform: translateY(3px); ">
+      <span class="premium-heading fw-bold text-dark" style="font-size: 1.8rem; vertical-align: middle; line-height: 1;transform: translateY(-3px);">Imagister</span>
+    </a>
+
+    <div class="d-flex align-items-center justify-content-end w-100 gap-4 text-uppercase small fw-bold" style="letter-spacing: 1.5px;">
+      {% if user.is_authenticated %}
+          <a href="{% url 'profile' %}" class="text-dark text-decoration-none d-none d-lg-block">Contul Meu</a>
+          <a href="{% url 'logout' %}" class="text-muted text-decoration-none d-none d-lg-block">Deconectare</a>
+      {% else %}
+          <a href="{% url 'login' %}" class="text-dark text-decoration-none d-none d-lg-block">Autentificare</a>
+          <a href="{% url 'register' %}" class="text-dark text-decoration-none d-none d-lg-block">Înregistrare</a>
+      {% endif %}
+
+      <a href="{% url 'cart_summary' %}" class="text-dark text-decoration-none position-relative">
+          Coș (<span id="cart-qty">{{ cart|length }}</span>)
+      </a>
+    </div>
+
+  </div>
+</nav>

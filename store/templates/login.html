@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5 my-5" style="min-height: 60vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="text-center mb-5">
+                <h1 class="premium-heading display-4 mb-2">Bine Ai Revenit</h1>
+                <p class="text-muted small text-uppercase" style="letter-spacing: 2px;">Autentifică-te în contul tău Imagister</p>
+            </div>
+
+            <div class="bg-white p-4 p-md-5 border rounded-0 shadow-sm">
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">Nume utilizator</label>
+                        <input type="text" class="form-control rounded-0 py-3 px-3" name="username" placeholder="Introdu numele de utilizator" required style="background-color: #fafafa; border: 1px solid #e5e5e5;">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">Parolă</label>
+                        <input type="password" class="form-control rounded-0 py-3 px-3" name="password" placeholder="Introdu parola" required style="background-color: #fafafa; border: 1px solid #e5e5e5;">
+                    </div>
+
+                    <button type="submit" class="btn btn-premium w-100 py-3 mb-3">Autentificare</button>
+                    <div class="text-center mb-4">
+                        <a href="{% url 'password_reset' %}" class="text-muted small text-decoration-none" style="letter-spacing: 0.5px;">Ai uitat parola?</a>
+                    </div>
+                </form>
+
+                <div class="text-center pt-4 border-top">
+                    <p class="text-muted small mb-0">
+                        Nu ai un cont? 
+                        <a href="{% url 'register' %}" class="text-dark fw-bold text-decoration-none border-bottom border-dark pb-1 ms-1" style="letter-spacing: 1px;">Creează cont</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

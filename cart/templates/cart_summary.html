@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .cart-item-image-wrapper {
+        background-color: #f8f8f8;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 1/1;
+    }
+    .cart-item-image-wrapper img {
+        mix-blend-mode: multiply;
+        max-height: 100%;
+        width: auto;
+    }
+    .order-summary-card {
+        border: 1px solid #eee;
+        background-color: #fff;
+    }
+    .remove-item-link {
+        color: #999;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .remove-item-link:hover {
+        color: #000;
+    }
+</style>
+
+<div class="container-fluid px-4 px-xl-5 py-5 mt-4" style="min-height: 70vh;">
+    <div class="text-center mb-5">
+        <h1 class="premium-heading display-4 mb-2">Coș de Cumpărături</h1>
+        <p class="text-muted small text-uppercase" style="letter-spacing: 2px;">{{ cart|length }} produs{% if cart|length != 1 %}e{% endif %} în colecția ta</p>
+    </div>
+
+    {% if cart_products %}
+    <div class="row gx-lg-5">
+        <!-- Cart Items -->
+        <div class="col-lg-8 mb-5">
+            {% for product in cart_products %}
+            <div class="row mb-5 pb-5 border-bottom align-items-center">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <div class="cart-item-image-wrapper">
+                        {% if product.get_image_url %}
+                            <img src="{{ product.get_image_url }}" class="img-fluid" alt="{{ product.brand }}">
+                        {% else %}
+                            <div class="text-muted small">Fără Imagine</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6 ps-md-4">
+                    <h5 class="text-uppercase small fw-bold mb-1" style="letter-spacing: 1.5px;">{{ product.brand }}</h5>
+                    <p class="text-muted small mb-2">{% if product.category == 'SUN' %}Ochelari de soare{% else %}Ochelari de vedere{% endif %} • {{ product.color }}</p>
+                    <h6 class="mb-4">{{ product.price }} RON</h6>
+
+                    {% for key, value in quantities.items %}
+                        {% if key == product.id|slugify %}
+                            {% if value.prescription %}
+                                <div class="border-start ps-4 py-2 mt-3 mb-3">
+                                    <h6 class="text-uppercase small fw-bold mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Detalii Rețetă / Dioptrii</h6>
+                                    <div class="text-muted" style="font-size: 0.8rem; line-height: 1.6;">
+                                        <div>OD: {{ value.prescription.od_sph|default:"0.00" }} / {{ value.prescription.od_cyl|default:"0.00" }} / {{ value.prescription.od_axis|default:"0" }}</div>
+                                        <div>OS: {{ value.prescription.os_sph|default:"0.00" }} / {{ value.prescription.os_cyl|default:"0.00" }} / {{ value.prescription.os_axis|default:"0" }}</div>
+                                        <div class="mt-1">PD: {{ value.prescription.pd }}mm</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="col-md-3 text-md-end">
+                    <div class="mb-3">
+                        <label class="small text-uppercase fw-bold d-block mb-2" style="letter-spacing: 1px; font-size: 0.65rem;">Cantitate</label>
+                        <select class="form-select form-select-sm rounded-0 border-0 bg-light shadow-none w-auto ms-md-auto update-qty-select" data-index="{{ product.id }}">
+                            <option value="1" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 1 %}selected{% endif %}{% endif %}{% endfor %}>1</option>
+                            <option value="2" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 2 %}selected{% endif %}{% endif %}{% endfor %}>2</option>
+                            <option value="3" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 3 %}selected{% endif %}{% endif %}{% endfor %}>3</option>
+                            <option value="4" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 4 %}selected{% endif %}{% endif %}{% endfor %}>4</option>
+                        </select>
+                    </div>
+                    <a href="{% url 'cart_delete' product.id %}" class="remove-item-link">Șterge</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary -->
+        <div class="col-lg-4">
+            <div class="order-summary-card p-5 sticky-top" style="top: 120px;">
+                <h6 class="text-uppercase fw-bold mb-4" style="letter-spacing: 2px; font-size: 0.75rem;">Sumar Comandă</h6>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted small text-uppercase" style="letter-spacing: 1px;">Subtotal</span>
+                    <span class="small fw-bold">{{ totals }} RON</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="text-muted small text-uppercase" style="letter-spacing: 1px;">Livrare</span>
+                    <span class="text-success small fw-bold">Gratuită</span>
+                </div>
+
+                <div class="border-top pt-4 mt-4 d-flex justify-content-between align-items-end">
+                    <h5 class="text-uppercase small fw-bold mb-0" style="letter-spacing: 2px;">Total</h5>
+                    <h4 class="mb-0">{{ totals }} RON</h4>
+                </div>
+
+                <a href="{% url 'checkout' %}" class="btn btn-premium w-100 mt-5">Finalizează Comanda</a>
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted small mb-0" style="font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase;">
+                        Plăți Sigure și Securizate <br>
+                        Retur Gratuit pentru Toate Ramele
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5 mt-5">
+        <h3 class="premium-heading mb-4">Coșul tău este gol</h3>
+        <p class="text-muted mb-5">Explorează colecția noastră și găsește perechea perfectă.</p>
+        <a href="{% url 'home' %}" class="btn btn-premium px-5">Explorează Colecția</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).on('change', '.update-qty-select', function(e){
+    e.preventDefault();
+    var productid = $(this).data('index');
+    var productqty = $(this).val();
+
+    $.ajax({
+        type: 'POST',
+        url: '{% url "cart_update" %}',
+        data: {
+            product_id: productid,
+            product_qty: productqty,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+        },
+        success: function(json){
+            location.reload();
+        }
+    });
+});
+</script>
+
+{% endblock %}

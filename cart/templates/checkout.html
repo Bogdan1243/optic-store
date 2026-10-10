@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .checkout-input {
+        border: none;
+        border-bottom: 1px solid #ddd;
+        border-radius: 0;
+        padding-left: 0;
+        background: transparent !important;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+    .checkout-input:focus {
+        box-shadow: none;
+        border-bottom-color: #000;
+    }
+</style>
+
+<div class="container-fluid px-4 px-xl-5 py-5 mt-4" style="min-height: 70vh;">
+    <div class="text-center mb-5">
+        <h1 class="premium-heading display-4 mb-2">Finalizare Comandă</h1>
+        <p class="text-muted small text-uppercase" style="letter-spacing: 2px;">Informații de Livrare și Facturare</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="border p-5">
+                <form method="POST" action="{% url 'process_order' %}">
+                    {% csrf_token %}
+
+                    <div class="mb-5">
+                        <h6 class="text-uppercase small fw-bold mb-4" style="letter-spacing: 2px; font-size: 0.75rem;">Date de Contact</h6>
+                        <div class="mb-4">
+                            <label class="small text-muted text-uppercase d-block mb-2" style="letter-spacing: 1px; font-size: 0.65rem;">Nume Complet</label>
+                            <input type="text" class="form-control checkout-input" name="full_name" required
+                                   value="{% if user.is_authenticated %}{{ user.first_name }} {{ user.last_name }}{% endif %}">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="small text-muted text-uppercase d-block mb-2" style="letter-spacing: 1px; font-size: 0.65rem;">Adresă Email</label>
+                            <input type="email" class="form-control checkout-input" name="email" required
+                                   value="{% if user.is_authenticated %}{{ user.email }}{% endif %}">
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <h6 class="text-uppercase small fw-bold mb-4" style="letter-spacing: 2px; font-size: 0.75rem;">Adresă de Livrare</h6>
+                        <div class="mb-4">
+                            <label class="small text-muted text-uppercase d-block mb-2" style="letter-spacing: 1px; font-size: 0.65rem;">Detalii Adresă</label>
+                            <textarea class="form-control checkout-input" name="shipping_address" rows="3" required placeholder="Stradă, Număr, Oraș, Județ, Cod Poștal"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-4 mt-5">
+                        <div class="d-flex justify-content-between align-items-end mb-5">
+                            <h6 class="text-uppercase small fw-bold mb-0" style="letter-spacing: 2px;">Total Comandă</h6>
+                            <h4 class="mb-0">{{ totals }} RON</h4>
+                        </div>
+
+                        <button type="submit" class="btn btn-premium w-100 py-3">
+                            Plasează Comanda
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted small mb-0" style="font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase;">
+                            Tranzacție securizată și criptată
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
