@@ -8,4 +8,6 @@ SECURITY_AUDIT.md
 .env
 db.sqlite3
 .idea/
+media/staticfiles/
 media/
+*.zip
