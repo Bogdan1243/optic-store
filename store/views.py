@@ -11,6 +11,7 @@ from .forms import ReviewForm, CustomRegisterForm
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 # --- 1. PAGES ---
 
 def home(request):
@@ -61,6 +62,32 @@ def deduplicate_products_by_model(queryset):
     return deduped
 
 
+def paginate_products(products, request, per_page=20):
+    paginator = Paginator(products, per_page)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    current = page_obj.number
+    total = paginator.num_pages
+
+    if total <= 4:
+        page_obj.elided_pages = list(range(1, total + 1))
+    elif current == 1:
+        page_obj.elided_pages = [1, 2, 3, paginator.ELLIPSIS, total]
+    elif current >= total - 1:
+        page_obj.elided_pages = [total - 2, total - 1, total]
+    else:
+        pages = [current - 1, current, current + 1]
+        if pages[-1] < total:
+            if pages[-1] == total - 1:
+                pages.append(total)
+            else:
+                pages.extend([paginator.ELLIPSIS, total])
+        page_obj.elided_pages = pages
+
+    return page_obj
+
+
 def shop(request):
     products = Product.objects.all()
     sex_query = request.GET.get('sex')
@@ -77,6 +104,7 @@ def shop(request):
         is_filtered = True
 
     products = deduplicate_products_by_model(products)
+    products = paginate_products(products, request, 20)
 
     return render(request, 'home.html', {
         'products': products,
@@ -103,11 +131,12 @@ def filter_by_category(request, cat_code):
 
     # 3. Set a nice title for the page
     if cat_code == 'SUN':
-        page_title = "Sunglasses Collection"
+        page_title = "Ochelari de soare"
     else:
-        page_title = "Vision & Optical Collection"
+        page_title = "Ochelari de vedere"
 
     products = deduplicate_products_by_model(products)
+    products = paginate_products(products, request, 20)
 
     # 4. Render the shop page
     return render(request, 'home.html', {
@@ -126,6 +155,7 @@ def filter_by_category(request, cat_code):
 def filter_by_brand(request, brand_name):
     products = Product.objects.filter(brand__icontains=brand_name)
     products = deduplicate_products_by_model(products)
+    products = paginate_products(products, request, 20)
     return render(request, 'home.html', {
         'products': products,
         'title': brand_name,
@@ -137,6 +167,7 @@ def filter_by_brand(request, brand_name):
 def filter_by_sex(request, sex_name):
     products = Product.objects.filter(sex__iexact=sex_name)
     products = deduplicate_products_by_model(products)
+    products = paginate_products(products, request, 20)
     return render(request, 'home.html', {
         'products': products,
         'title': sex_name
@@ -246,9 +277,12 @@ def filter_by_category2(request, cat_code):
         products = products.filter(size__iexact=size_query)
 
     if cat_code == 'SUN':
-        page_title = "Sunglasses Collection"
+        page_title = "Ochelari de soare"
     else:
-        page_title = "Vision & Optical Collection"
+        page_title = "Ochelari de vedere"
+
+    products = deduplicate_products_by_model(products)
+    products = paginate_products(products, request, 20)
 
     return render(request, 'home.html', {
         'products': products,

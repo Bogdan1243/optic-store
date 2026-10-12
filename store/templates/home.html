@@ -15,6 +15,8 @@
         font-weight: 600;
         color: #999;
         margin-bottom: 1.5rem;
+        margin-top: 3.5rem;
+
     }
 
     .filter-option {
@@ -70,7 +72,7 @@
 
     .sticky-filters {
         position: sticky;
-        top: 20px;
+        top: 50px;
     }
     .brand-banner {
         background: #fff;
@@ -92,10 +94,9 @@
     <img src="{% static brand_logo %}" alt="{{ brand_query }}">
 </div>
 {% else %}
-<div class="p-5 mb-5 bg-dark text-white rounded-0 d-flex align-items-center" style="min-height: 60vh; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('{% if cat_code == 'OPT' %}{% static 'images/optical_banner.jpg' %}{% else %}{% static 'images/RB2132__US_100x30.jpg' %}{% endif %}'); background-size: cover; background-position: center;">
+<div class="p-5 mb-5 bg-dark text-white rounded-0 d-flex align-items-center" style="min-height: 60vh; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('{% if cat_code == 'OPT' %}{% static 'images/Banner_OPT.jpg' %}{% else %}{% static 'images/RB2132__US_100x30.jpg' %}{% endif %}'); background-size: cover; background-position: center;">
     <div class="container-fluid px-4 px-xl-5 py-5">
         <h1 class="display-3 premium-heading fw-bold mb-3">Privește Lumea <br>cu Claritate</h1>
-        <p class="col-md-6 fs-5 fw-light text-white-50 mb-4">Ochelari premium pentru vizionarul modern. Descoperă noua noastră colecție de ochelari de soare și rame de vedere.</p>
         <a href="#products" class="btn btn-outline-light btn-lg rounded-0 px-5 py-3 small text-uppercase" style="letter-spacing: 2px;">Vezi Colecția</a>
     </div>
 </div>
@@ -124,6 +125,7 @@
                 <form id="filter-form" method="GET" action="{% if cat_code %}{% url 'category' cat_code %}{% else %}{% url 'shop' %}{% endif %}">
                     <input type="hidden" name="sex" id="id_sex" value="{{ sex_query|default:'All' }}">
                     <input type="hidden" name="brand" id="id_brand" value="{{ brand_query|default:'All' }}">
+                    <input type="hidden" name="page" id="id_page" value="{{ products.number|default:1 }}">
 
                     <div class="mb-5">
                         <label class="small text-uppercase fw-bold mb-3 d-block" style="letter-spacing: 1px;">Gen</label>
@@ -198,6 +200,61 @@
                         </div>
                     {% endfor %}
                 </div>
+
+                {% if products.has_other_pages %}
+                <nav aria-label="Navigare pagini" class="mt-5 pt-3">
+                    <ul class="pagination justify-content-center align-items-center flex-wrap gap-2 mb-0">
+                        {% if products.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link rounded border px-3 py-2 text-dark bg-light text-decoration-none small text-uppercase"
+                                   style="letter-spacing: 1px;"
+                                   href="?page={{ products.previous_page_number }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}"
+                                   onclick="goToPage({{ products.previous_page_number }}); return false;">
+                                    &larr; Înapoi
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link rounded border px-3 py-2 text-muted bg-light border-0 small text-uppercase" style="letter-spacing: 1px;">&larr; Înapoi</span>
+                            </li>
+                        {% endif %}
+
+                        {% for num in products.elided_pages %}
+                            {% if num == products.paginator.ELLIPSIS %}
+                                <li class="page-item disabled">
+                                    <span class="page-link rounded-0 border-0 px-2 py-2 text-muted bg-transparent fw-bold">&hellip;</span>
+                                </li>
+                            {% elif products.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link rounded border border-dark bg-dark text-white px-3 py-2 fw-bold">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link rounded border px-3 py-2 text-dark bg-white text-decoration-none"
+                                       href="?page={{ num }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}"
+                                       onclick="goToPage({{ num }}); return false;">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if products.has_next %}
+                            <li class="page-item">
+                                <a class="page-link rounded border px-3 py-2 text-dark bg-light text-decoration-none small text-uppercase"
+                                   style="letter-spacing: 1px;"
+                                   href="?page={{ products.next_page_number }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}"
+                                   onclick="goToPage({{ products.next_page_number }}); return false;">
+                                    Înainte &rarr;
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link rounded border px-3 py-2 text-muted bg-light border-0 small text-uppercase" style="letter-spacing: 1px;">Înainte &rarr;</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
             </div>
         </div>
 
@@ -209,12 +266,40 @@
         // Update hidden inputs
         document.getElementById('id_' + name).value = value;
         
+        // Reset to page 1 whenever filters change
+        const pageInput = document.getElementById('id_page');
+        if (pageInput) {
+            pageInput.value = 1;
+        }
+
         // Update active class in UI
         const options = event.target.closest('.filter-options').querySelectorAll('.filter-option');
         options.forEach(opt => opt.classList.remove('active'));
         event.target.classList.add('active');
 
-        // Fetch filtered results via AJAX
+        fetchProducts();
+    }
+
+    function goToPage(pageNumber) {
+        let pageInput = document.getElementById('id_page');
+        if (!pageInput) {
+            pageInput = document.createElement('input');
+            pageInput.type = 'hidden';
+            pageInput.name = 'page';
+            pageInput.id = 'id_page';
+            document.getElementById('filter-form').appendChild(pageInput);
+        }
+        pageInput.value = pageNumber;
+
+        fetchProducts();
+
+        const productsElem = document.getElementById('products');
+        if (productsElem) {
+            productsElem.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function fetchProducts() {
         const form = document.getElementById('filter-form');
         const formData = new FormData(form);
         const searchParams = new URLSearchParams(formData);
@@ -238,7 +323,10 @@
             container.innerHTML = newGrid;
             const newBanner = doc.getElementById('page-banner');
             if (newBanner) {
-                document.getElementById('page-banner').innerHTML = newBanner.innerHTML;
+                const currentBanner = document.getElementById('page-banner');
+                if (currentBanner) {
+                    currentBanner.innerHTML = newBanner.innerHTML;
+                }
             }
             container.style.opacity = '1';
             container.style.pointerEvents = 'all';
@@ -246,7 +334,11 @@
             // Update URL without reloading
             window.history.pushState({}, '', url);
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'all';
+        });
     }
 </script>
 
