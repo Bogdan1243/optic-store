@@ -72,14 +72,34 @@
         position: sticky;
         top: 20px;
     }
+    .brand-banner {
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        min-height: 40vh;
+    }
+
+    .brand-banner img {
+        height: clamp(80px, 14vw, 200px);
+        width: 100%;
+        max-width: 800px;
+        object-fit: contain;
+    }
 </style>
 
+<div id="page-banner">
+{% if brand_logo %}
+<div class="brand-banner mb-5 d-flex align-items-center justify-content-center px-4 py-5">
+    <img src="{% static brand_logo %}" alt="{{ brand_query }}">
+</div>
+{% else %}
 <div class="p-5 mb-5 bg-dark text-white rounded-0 d-flex align-items-center" style="min-height: 60vh; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('{% if cat_code == 'OPT' %}{% static 'images/optical_banner.jpg' %}{% else %}{% static 'images/RB2132__US_100x30.jpg' %}{% endif %}'); background-size: cover; background-position: center;">
     <div class="container-fluid px-4 px-xl-5 py-5">
         <h1 class="display-3 premium-heading fw-bold mb-3">Privește Lumea <br>cu Claritate</h1>
         <p class="col-md-6 fs-5 fw-light text-white-50 mb-4">Ochelari premium pentru vizionarul modern. Descoperă noua noastră colecție de ochelari de soare și rame de vedere.</p>
         <a href="#products" class="btn btn-outline-light btn-lg rounded-0 px-5 py-3 small text-uppercase" style="letter-spacing: 2px;">Vezi Colecția</a>
     </div>
+</div>
+{% endif %}
 </div>
 
 <div class="container-fluid px-4 px-xl-5 mb-5" id="products">
@@ -216,6 +236,10 @@
             const doc = parser.parseFromString(html, 'text/html');
             const newGrid = doc.getElementById('product-grid-container').innerHTML;
             container.innerHTML = newGrid;
+            const newBanner = doc.getElementById('page-banner');
+            if (newBanner) {
+                document.getElementById('page-banner').innerHTML = newBanner.innerHTML;
+            }
             container.style.opacity = '1';
             container.style.pointerEvents = 'all';
             

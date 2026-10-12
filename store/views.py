@@ -24,6 +24,25 @@ def contact(request):
 
 # --- 2. SHOP & FILTERS ---
 
+# Brand logos shown as the banner on brand pages (files live in static/images/brands/)
+BRAND_LOGOS = {
+    'armani exchange': 'images/brands/AX_Logo_Digital.svg',
+    'dolce&gabbana': 'images/brands/DG_Logo_Digital.svg',
+    'emporio armani': 'images/brands/EA_Logo_Digital.svg',
+    'michael kors': 'images/brands/MK_Logo_Digital.svg',
+    'ray-ban': 'images/brands/RB_Logo_Digital.svg',
+    'swarovski': 'images/brands/SK_Logo_Digital.svg',
+    'vogue': 'images/brands/VO_Logo_Digital.jpeg',
+}
+
+
+def get_brand_logo(brand_name):
+    """Returns the static path of the brand's logo, or None if there is none."""
+    if not brand_name or brand_name == 'All':
+        return None
+    return BRAND_LOGOS.get(brand_name.strip().lower())
+
+
 def deduplicate_products_by_model(queryset):
     """
     Deduplicates a queryset/list of products by model_code.
@@ -63,6 +82,7 @@ def shop(request):
         'products': products,
         'sex_query': sex_query,
         'brand_query': brand_query,
+        'brand_logo': get_brand_logo(brand_query),
         'is_filtered': is_filtered,
     })
 
@@ -99,6 +119,7 @@ def filter_by_category(request, cat_code):
                                          .distinct().order_by('brand'),
         'sex_query': sex_query,
         'brand_query': brand_query,
+        'brand_logo': get_brand_logo(brand_query),
         'is_filtered': True,
     })
 
@@ -107,7 +128,9 @@ def filter_by_brand(request, brand_name):
     products = deduplicate_products_by_model(products)
     return render(request, 'home.html', {
         'products': products,
-        'title': brand_name
+        'title': brand_name,
+        'brand_query': brand_name,
+        'brand_logo': get_brand_logo(brand_name),
     })
 
 
