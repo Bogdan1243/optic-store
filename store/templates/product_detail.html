@@ -249,6 +249,9 @@
                     </svg>
                 </button>
             </div>
+            {% if product.model_code %}
+            <p class="text-dark fw-semibold text-uppercase mb-1" style="letter-spacing: 1.5px;">{{ product.model_code }}</p>
+            {% endif %}
             <p class="text-muted text-uppercase small mb-4" style="letter-spacing: 2px;">Colecția {% if product.category == 'SUN' %}Ochelari de soare{% else %}Ochelari de vedere{% endif %}</p>
 
             <h3 class="fw-light mb-4 text-dark">{{ product.price }} RON</h3>
