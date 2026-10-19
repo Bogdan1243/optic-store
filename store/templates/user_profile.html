@@ -12,7 +12,8 @@
                     <h5 class="card-title">{{ user.first_name }} {{ user.last_name }}</h5>
                     <p class="card-text"><strong>Nume utilizator:</strong> {{ user.username }}</p>
                     <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
-                    <a href="{% url 'home' %}" class="btn btn-secondary w-100">Înapoi la Magazin</a>
+                    <a href="{% url 'home' %}" class="btn btn-secondary w-100 mb-2">Înapoi la Magazin</a>
+                    <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100">Deconectare</a>
                 </div>
             </div>
         </div>

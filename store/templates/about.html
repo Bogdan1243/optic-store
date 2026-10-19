@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container py-5 my-4">
@@ -7,17 +8,21 @@
             <h1 class="premium-heading display-4 fw-bold mb-3">Despre Imagister 👓</h1>
             <p class="lead text-muted mb-4">Privim lumea altfel din 2024.</p>
             <p style="line-height: 1.8;">
-                Bine ai venit la Imagister, destinația ta principală din România pentru ochelari de lux și de zi cu zi. 
-                Suntem convinși că ochelarii nu sunt doar o necesitate medicală — ci o veritabilă declarație de stil.
+               IMAGISTER este unul dintre cele mai moderne centre de investigații medicale oftalmologice și rețea de optici din regiune, fiind prezent în 8 locații și puncte diferite din 3 județe (Satu Mare, Bihor și Sălaj).
+Cea care a îndrăznit nu doar să viseze, dar și să acționeze pentru a pune în practică ceea ce alții au ezitat să facă, a fost doamna dr. Olimpia Șter, medic primar oftalmolog, care profesează ca medic de-o viață întreagă, cu aceeași iubire și pasiune pentru domeniul oftalmologiei precum în prima zi.
             </p>
             <p style="line-height: 1.8;">
-                Colecția noastră reunește cele mai prestigioase mărci, de la clasicii Ray-Ban până la inginerie optică modernă. 
-                Fiecare pereche este verificată riguros pentru calitate și autenticitate înainte de a ajunge la tine.
+                În timp, parte din această poveste a devenit și fiul dânsei, dr. Sever Șter, care a hotărât să se alăture mamei în această profesie și să scrie povestea mai departe. A studiat medicina, specializându-se pe oftalmologie și chirurgie oftalmologică, iar astăzi conduce întreaga rețea Imagister, oferind consultații oftalmologice de specialitate, realizează intervenții chirurgicale complexe și lucrează constant la dezvoltarea rețelei pe plan regional.
             </p>
+            <div class="mt-4">
+                <a href="https://imagister.ro/" target="_blank" rel="noopener noreferrer" class="btn btn-premium text-decoration-none d-inline-block">
+                    Vizitează Site-ul Clinicii Imagister ↗
+                </a>
+            </div>
         </div>
         <div class="col-md-6">
-            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1000&auto=format&fit=crop" 
-                 class="img-fluid rounded-0 shadow-lg" alt="Magazinul Nostru">
+            <img src="{% static 'images/sever.png' %}"
+                 class="img-fluid rounded-0 shadow-lg" alt="Dr. Sever Șter">
         </div>
     </div>
 </div>

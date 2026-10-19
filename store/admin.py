@@ -3,8 +3,8 @@ from django.contrib import admin, messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import path
-from .models import Product, ProductImage, Order, OrderItem, Review
-from .excel_import import import_products_from_excel, generate_sample_xlsx
+from .models import Product, ProductImage, Order, OrderItem, Review, ReturnRequest
+from .excel_import import import_products_from_excel, generate_sample_xlsx, export_products_to_xlsx
 
 
 class MultipleFileInput(forms.FileInput):
@@ -46,6 +46,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('brand', 'model_code', 'slug', 'color', 'description')
     readonly_fields = ('slug',)
     inlines = [ProductImageInline]
+    actions = ['export_selected_to_excel']
 
     fieldsets = (
         ('Informații de Bază', {
@@ -66,6 +67,7 @@ class ProductAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('import-excel/', self.admin_site.admin_view(self.import_excel_view), name='product-import-excel'),
+            path('export-excel/', self.admin_site.admin_view(self.export_excel_view), name='product-export-excel'),
             path('download-template/', self.admin_site.admin_view(self.download_template_view), name='product-download-template'),
         ]
         return custom_urls + urls
@@ -101,6 +103,25 @@ class ProductAdmin(admin.ModelAdmin):
         }
         return render(request, 'admin/store/product/excel_import.html', context)
 
+    def export_excel_view(self, request):
+        content = export_products_to_xlsx(Product.objects.all().order_by('id'))
+        response = HttpResponse(
+            content,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="products_export.xlsx"'
+        return response
+
+    @admin.action(description="📤 Export selected products to Excel (.xlsx)")
+    def export_selected_to_excel(self, request, queryset):
+        content = export_products_to_xlsx(queryset.order_by('id'))
+        response = HttpResponse(
+            content,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="products_selected_export.xlsx"'
+        return response
+
     def download_template_view(self, request):
         content = generate_sample_xlsx()
         response = HttpResponse(
@@ -117,7 +138,15 @@ class ProductAdmin(admin.ModelAdmin):
             ProductImage.objects.create(product=form.instance, image=img)
 
 
+class ReturnRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order_number', 'full_name', 'email', 'phone', 'return_reason', 'refund_method', 'status', 'created_at')
+    list_filter = ('status', 'return_reason', 'refund_method', 'created_at')
+    search_fields = ('order_number', 'full_name', 'email', 'phone', 'products', 'iban')
+    readonly_fields = ('created_at',)
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order)
 admin.site.register(OrderItem)
 admin.site.register(Review)
+admin.site.register(ReturnRequest, ReturnRequestAdmin)

@@ -15,6 +15,7 @@ else:
 
 # Header mapping to support English & Romanian column headers
 HEADER_MAPPING = {
+    'id': 'id',
     'brand': 'brand',
     'marca': 'brand',
     'model': 'model_code',
@@ -57,16 +58,21 @@ HEADER_MAPPING = {
     'tip_margine': 'rim_type',
     'bridge_length': 'bridge_length',
     'lungime_punte': 'bridge_length',
+    'punte_nazala': 'bridge_length',
+    'punte_nazală': 'bridge_length',
     'temple_length': 'temple_length',
     'lungime_brate': 'temple_length',
     'lungime_brațe': 'temple_length',
     'hinge_to_hinge': 'hinge_to_hinge',
     'balama_la_balama': 'hinge_to_hinge',
+    'balama-la-balama': 'hinge_to_hinge',
     'lens_color': 'lens_color',
     'culoare_lentile': 'lens_color',
     'lens_width': 'lens_width',
     'latime_lentila': 'lens_width',
     'lățime_lentilă': 'lens_width',
+    'latime_lentile': 'lens_width',
+    'lățime_lentile': 'lens_width',
     'lens_height': 'lens_height',
     'inaltime_lentila': 'lens_height',
     'înălțime_lentilă': 'lens_height',
@@ -136,6 +142,77 @@ def generate_sample_xlsx():
         max_len = max(len(str(cell.value or '')) for cell in col)
         col_letter = openpyxl.utils.get_column_letter(col[0].column)
         ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return output.getvalue()
+
+
+def export_products_to_xlsx(queryset=None):
+    """Exports all products (or a provided queryset) into an Excel (.xlsx) file."""
+    if queryset is None:
+        queryset = Product.objects.all().order_by('id')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Products Export"
+
+    headers = [
+        'id', 'brand', 'model_code', 'color', 'color_hex', 'size', 'price',
+        'category', 'sex', 'description', 'image', 'ar_image', 'gallery_images',
+        'frame_shape', 'frame_material', 'frame_finish', 'rim_type',
+        'bridge_length', 'temple_length', 'hinge_to_hinge', 'lens_color',
+        'lens_width', 'lens_height', 'lens_base', 'face_shape',
+        'progressive_friendly', 'age_group'
+    ]
+    ws.append(headers)
+
+    for product in queryset:
+        image_name = os.path.basename(product.image.name) if product.image else ''
+        ar_image_name = os.path.basename(product.ar_image.name) if product.ar_image else ''
+        gallery_names = ''
+        if hasattr(product, 'images'):
+            gallery_names = ', '.join(
+                os.path.basename(gi.image.name)
+                for gi in product.images.all()
+                if gi.image
+            )
+
+        ws.append([
+            product.id,
+            product.brand or '',
+            product.model_code or '',
+            product.color or '',
+            product.color_hex or '',
+            product.size or '',
+            float(product.price) if product.price is not None else 0.0,
+            product.category or 'SUN',
+            product.sex or 'Unisex',
+            product.description or '',
+            image_name,
+            ar_image_name,
+            gallery_names,
+            product.frame_shape or '',
+            product.frame_material or '',
+            product.frame_finish or '',
+            product.rim_type or '',
+            product.bridge_length or '',
+            product.temple_length or '',
+            product.hinge_to_hinge or '',
+            product.lens_color or '',
+            product.lens_width or '',
+            product.lens_height or '',
+            product.lens_base or '',
+            product.face_shape or '',
+            bool(product.progressive_friendly),
+            product.age_group or '',
+        ])
+
+    for col in ws.columns:
+        max_len = max(len(str(cell.value if cell.value is not None else '')) for cell in col)
+        col_letter = openpyxl.utils.get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 50)
 
     output = io.BytesIO()
     wb.save(output)
@@ -330,15 +407,25 @@ def import_products_from_excel(excel_file_or_path, zip_file_or_path=None, image_
         prog_raw = get_val('progressive_friendly', 'false').lower()
         progressive_friendly = prog_raw in ['true', '1', 'yes', 'da', 't']
 
-        product_filter = Product.objects.filter(
-            brand__iexact=brand,
-            color__iexact=color,
-            size__iexact=size
-        )
-        if model_code and 'model_code' in product_model_fields:
-            product_filter = product_filter.filter(model_code__iexact=model_code)
+        product = None
+        id_raw = get_val('id')
+        if id_raw:
+            try:
+                product = Product.objects.filter(pk=int(float(id_raw))).first()
+            except ValueError:
+                product = None
 
-        product = product_filter.first()
+        if not product:
+            product_filter = Product.objects.filter(
+                brand__iexact=brand,
+                color__iexact=color,
+                size__iexact=size
+            )
+            if model_code and 'model_code' in product_model_fields:
+                product_filter = product_filter.filter(model_code__iexact=model_code)
+
+            product = product_filter.first()
+
         is_created = False
 
         if not product:
@@ -353,8 +440,11 @@ def import_products_from_excel(excel_file_or_path, zip_file_or_path=None, image_
             )
             is_created = True
         else:
+            product.brand = brand
+            product.color = color
+            product.size = size
             product.price = price
-            if description:
+            if description or 'description' in header_index_map:
                 product.description = description
             product.category = category
             product.sex = sex
@@ -383,6 +473,8 @@ def import_products_from_excel(excel_file_or_path, zip_file_or_path=None, image_
                 field_obj = product_model_fields[attr]
                 if val is not None and val != '':
                     setattr(product, attr, val)
+                elif attr in header_index_map and not is_created and getattr(field_obj, 'null', False):
+                    setattr(product, attr, None)
                 elif not getattr(field_obj, 'null', False):
                     if field_obj.get_internal_type() == 'BooleanField':
                         if getattr(product, attr, None) is None:

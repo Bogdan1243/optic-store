@@ -6,12 +6,13 @@ from django.utils import timezone
 import datetime
 
 from cart.cart import Cart
-from .models import Product, Order, OrderItem, Review
-from .forms import ReviewForm, CustomRegisterForm
+from .models import Product, Order, OrderItem, Review, ReturnRequest
+from .forms import ReviewForm, CustomRegisterForm, ReturnRequestForm
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 # --- 1. PAGES ---
 
 def home(request):
@@ -22,6 +23,89 @@ def about(request):
 
 def contact(request):
     return render(request, "contact.html", {})
+
+
+def _get_initial_return_data(request):
+    initial = {}
+    if request.user.is_authenticated:
+        full_name = f"{request.user.first_name} {request.user.last_name}".strip()
+        initial['full_name'] = full_name or request.user.username
+        initial['email'] = request.user.email
+    order_param = request.GET.get('order', '').strip()
+    if order_param:
+        initial['order_number'] = order_param
+    return initial
+
+
+def _process_return_submission(request, form):
+    return_req = form.save(commit=False)
+    if request.user.is_authenticated:
+        return_req.user = request.user
+    try:
+        return_req.save()
+    except Exception:
+        pass
+
+    # Attempt to send email notification to store admin
+    try:
+        admin_email = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', None) or 'clinica.imagister@gmail.com'
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or admin_email
+        subject = f"Solicitare Retur Nouă - Comanda {return_req.order_number}"
+        body = (
+            f"A fost înregistrată o nouă solicitare de retur:\n\n"
+            f"Număr Comandă: {return_req.order_number}\n"
+            f"Nume Client: {return_req.full_name}\n"
+            f"Email: {return_req.email}\n"
+            f"Telefon: {return_req.phone}\n"
+            f"Produse de returnat: {return_req.products}\n"
+            f"Motiv retur: {return_req.get_return_reason_display()}\n"
+            f"Metodă rambursare: {return_req.get_refund_method_display()}\n"
+            f"IBAN: {return_req.iban or '-'}\n"
+            f"Titular Cont: {return_req.account_holder or '-'}\n"
+            f"Observații: {return_req.observations or '-'}\n"
+        )
+        send_mail(subject, body, from_email, [admin_email], fail_silently=True)
+    except Exception:
+        pass
+
+
+def livrare_si_retur(request):
+    if request.method == 'POST':
+        form = ReturnRequestForm(request.POST)
+        if form.is_valid():
+            _process_return_submission(request, form)
+            messages.success(
+                request,
+                "Solicitarea dvs. de retur a fost înregistrată cu succes! "
+                "Vă vom trimite un e-mail de confirmare după recepționarea și verificarea coletului."
+            )
+            return redirect('livrare_si_retur')
+        else:
+            messages.error(request, "Vă rugăm să verificați câmpurile formularului de retur.")
+    else:
+        form = ReturnRequestForm(initial=_get_initial_return_data(request))
+
+    return render(request, "livrare_si_retur.html", {"form": form})
+
+
+def formular_retur(request):
+    if request.method == 'POST':
+        form = ReturnRequestForm(request.POST)
+        if form.is_valid():
+            _process_return_submission(request, form)
+            messages.success(
+                request,
+                "Solicitarea dvs. de retur a fost înregistrată cu succes! "
+                "Vă vom trimite un e-mail de confirmare după recepționarea și verificarea coletului."
+            )
+            return redirect('formular_retur')
+        else:
+            messages.error(request, "Vă rugăm să verificați câmpurile formularului de retur.")
+    else:
+        form = ReturnRequestForm(initial=_get_initial_return_data(request))
+
+    return render(request, "formular_retur.html", {"form": form})
+
 
 # --- 2. SHOP & FILTERS ---
 
@@ -42,6 +126,35 @@ def get_brand_logo(brand_name):
     if not brand_name or brand_name == 'All':
         return None
     return BRAND_LOGOS.get(brand_name.strip().lower())
+
+
+def filter_products_by_search(queryset, search_query):
+    """Filters products based on brand name or product code (model_code / slug)."""
+    if not search_query:
+        return queryset
+    tokens = search_query.strip().split()
+    for token in tokens:
+        token_no_zero = token.lstrip('0') or token
+        token_q = (
+            Q(brand__icontains=token) |
+            Q(model_code__icontains=token) |
+            Q(slug__icontains=token)
+        )
+        if token_no_zero != token:
+            token_q |= Q(model_code__icontains=token_no_zero) | Q(slug__icontains=token_no_zero)
+        if '-' in token:
+            parts = [p for p in token.split('-') if p]
+            if len(parts) > 1:
+                parts_q = Q()
+                for part in parts:
+                    parts_q &= (
+                        Q(brand__icontains=part) |
+                        Q(model_code__icontains=part) |
+                        Q(slug__icontains=part)
+                    )
+                token_q |= parts_q
+        queryset = queryset.filter(token_q)
+    return queryset
 
 
 def deduplicate_products_by_model(queryset):
@@ -92,6 +205,7 @@ def shop(request):
     products = Product.objects.all()
     sex_query = request.GET.get('sex')
     brand_query = request.GET.get('brand')
+    search_query = request.GET.get('q', '').strip()
 
     is_filtered = False  # We will use this to tell HTML to hide "Our Full Collection"
 
@@ -103,6 +217,10 @@ def shop(request):
         products = products.filter(brand__icontains=brand_query)
         is_filtered = True
 
+    if search_query:
+        products = filter_products_by_search(products, search_query)
+        is_filtered = True
+
     products = deduplicate_products_by_model(products)
     products = paginate_products(products, request, 20)
 
@@ -110,7 +228,8 @@ def shop(request):
         'products': products,
         'sex_query': sex_query,
         'brand_query': brand_query,
-        'brand_logo': get_brand_logo(brand_query),
+        'search_query': search_query,
+        'brand_logo': get_brand_logo(brand_query) or get_brand_logo(search_query),
         'is_filtered': is_filtered,
     })
 
@@ -122,12 +241,16 @@ def filter_by_category(request, cat_code):
     # 2. Check if they are ALSO using the sidebar filters
     sex_query = request.GET.get('sex')
     brand_query = request.GET.get('brand')
+    search_query = request.GET.get('q', '').strip()
 
     if sex_query and sex_query != 'All':
         products = products.filter(sex__iexact=sex_query)
 
     if brand_query and brand_query != 'All':
         products = products.filter(brand__icontains=brand_query)
+
+    if search_query:
+        products = filter_products_by_search(products, search_query)
 
     # 3. Set a nice title for the page
     if cat_code == 'SUN':
@@ -148,7 +271,8 @@ def filter_by_category(request, cat_code):
                                          .distinct().order_by('brand'),
         'sex_query': sex_query,
         'brand_query': brand_query,
-        'brand_logo': get_brand_logo(brand_query),
+        'search_query': search_query,
+        'brand_logo': get_brand_logo(brand_query) or get_brand_logo(search_query),
         'is_filtered': True,
     })
 
@@ -289,3 +413,56 @@ def filter_by_category2(request, cat_code):
         'title': page_title,
         'is_filtered': True,
     })
+
+
+# --- 5. FAVOURITES / WISHLIST ---
+
+def favourites_view(request):
+    from django.http import JsonResponse  # noqa: F401
+    fav_raw = request.session.get('favourites', [])
+    fav_ids = []
+    for pid in fav_raw:
+        try:
+            fav_ids.append(int(pid))
+        except (ValueError, TypeError):
+            pass
+
+    products_by_id = {p.id: p for p in Product.objects.filter(id__in=fav_ids)}
+    favourite_products = [products_by_id[pid] for pid in fav_ids if pid in products_by_id]
+
+    return render(request, 'favourites.html', {
+        'products': favourite_products,
+    })
+
+
+def toggle_favourite(request, pk):
+    from django.http import JsonResponse
+    product = get_object_or_404(Product, pk=pk)
+    fav_raw = request.session.get('favourites', [])
+    fav_ids = []
+    for pid in fav_raw:
+        try:
+            val = int(pid)
+            if val not in fav_ids:
+                fav_ids.append(val)
+        except (ValueError, TypeError):
+            pass
+
+    if product.id in fav_ids:
+        fav_ids.remove(product.id)
+        is_favourite = False
+    else:
+        fav_ids.append(product.id)
+        is_favourite = True
+
+    request.session['favourites'] = fav_ids
+    request.session.modified = True
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.method == 'POST':
+        return JsonResponse({
+            'is_favourite': is_favourite,
+            'count': len(fav_ids),
+            'product_id': product.id,
+        })
+
+    return redirect(request.META.get('HTTP_REFERER', 'favourites'))

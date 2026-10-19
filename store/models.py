@@ -136,6 +136,14 @@ class Product(models.Model):
         return Product.objects.none()
 
     @property
+    def size_list(self):
+        """Returns a list of individual sizes parsed from the size field (e.g. 'S, M' -> ['S', 'M'])."""
+        if not self.size:
+            return []
+        return [s.strip() for s in str(self.size).split(',') if s.strip()]
+
+
+    @property
     def get_color_hex_default(self):
         """Fallback color hex helper for standard color names if color_hex is not set."""
         if self.color_hex:
@@ -227,3 +235,56 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username} on {self.product.brand}"
+
+
+class ReturnRequest(models.Model):
+    REASON_CHOICES = [
+        ('nepotrivire', 'Nu mi se potrivesc / Decizie personală (fără motiv)'),
+        ('defect', 'Produs cu defect de fabricație'),
+        ('gresit', 'Produs greșit / Nu corespunde specificațiilor din comandă'),
+        ('altul', 'Alt motiv'),
+    ]
+
+    REFUND_METHOD_CHOICES = [
+        ('card', 'Restituire automată pe cardul utilizat la plata comenzii inițiale'),
+        ('iban', 'Transfer bancar în contul IBAN'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'În așteptare'),
+        ('approved', 'Aprobat'),
+        ('rejected', 'Respins'),
+        ('refunded', 'Rambursat'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    order_number = models.CharField(max_length=100, verbose_name="Număr Comandă")
+    full_name = models.CharField(max_length=250, verbose_name="Nume și Prenume")
+    email = models.EmailField(max_length=250, verbose_name="Adresă de E-mail")
+    phone = models.CharField(max_length=50, verbose_name="Număr de Telefon")
+    products = models.TextField(verbose_name="Produse de returnat")
+    return_reason = models.CharField(
+        max_length=50,
+        choices=REASON_CHOICES,
+        default='nepotrivire',
+        verbose_name="Motivul returului"
+    )
+    refund_method = models.CharField(
+        max_length=30,
+        choices=REFUND_METHOD_CHOICES,
+        default='card',
+        verbose_name="Metoda de rambursare"
+    )
+    iban = models.CharField(max_length=60, blank=True, null=True, verbose_name="Cont IBAN")
+    account_holder = models.CharField(max_length=250, blank=True, null=True, verbose_name="Titular Cont")
+    observations = models.TextField(blank=True, null=True, verbose_name="Observații suplimentare")
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending', verbose_name="Status")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data solicitării")
+
+    class Meta:
+        verbose_name = "Solicitare Retur"
+        verbose_name_plural = "Solicitări Retur"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Retur #{self.id} - Comanda {self.order_number} ({self.full_name})"

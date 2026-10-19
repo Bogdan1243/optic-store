@@ -12,18 +12,26 @@ class Cart():
 
         self.cart = cart
 
-    # 👇 Shifted left! Now it is a proper class method, just like __init__
-    def add(self, product, quantity=1, prescription=None):
+    def add(self, product, quantity=1, prescription=None, selected_size=None):
         product_id = str(product.id)
-        product_qty = str(quantity)
+        size_val = (selected_size or '').strip()
+        if not size_val:
+            size_val = product.size_list[0] if getattr(product, 'size_list', None) else (product.size or '')
 
         if product_id in self.cart:
-            pass  # Item is already in cart
+            self.cart[product_id]['qty'] = '1'
+            if size_val:
+                self.cart[product_id]['size'] = size_val
+            if prescription:
+                self.cart[product_id]['prescription'] = prescription
         else:
-            # Add the item to the cart dictionary
-            self.cart[product_id] = {'price': str(product.price), 'qty': product_qty}
+            # Add the item to the cart dictionary (always qty 1 since only 1 pair of each product exists)
+            self.cart[product_id] = {
+                'price': str(product.price),
+                'qty': '1',
+                'size': size_val,
+            }
 
-            # 👇 Attach the prescription to this specific pair of glasses!
             if prescription:
                 self.cart[product_id]['prescription'] = prescription
 
@@ -41,12 +49,7 @@ class Cart():
 
         total = 0
         for product in products:
-            cart_item = self.cart[str(product.id)]
-
-            # 👇 Force the string back into an integer!
-            quantity = int(cart_item['qty'])
-
-            total = total + (product.price * quantity)
+            total = total + product.price
 
         return total
 
@@ -59,8 +62,7 @@ class Cart():
         self.session.modified = True
 
     def __len__(self):
-        # We need to explicitly convert the string 'qty' back to an integer to sum it up!
-        return sum(int(item['qty']) for item in self.cart.values())
+        return len(self.cart)
 
     def clear(self):
         # Delete the cart from the session
@@ -73,13 +75,11 @@ class Cart():
 
     def update(self, product, quantity):
         product_id = str(product)
-        product_qty = int(quantity)
 
         if product_id in self.cart:
-            self.cart[product_id]['qty'] = product_qty
+            self.cart[product_id]['qty'] = 1
 
         self.session.modified = True
 
-        # Optional: Return the new cart object if needed, but not strictly necessary here
         thing = self.cart
         return thing

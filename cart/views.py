@@ -72,8 +72,10 @@ def cart_add(request):
             if pd_value and not pd_pattern.match(pd_value):
                 return JsonResponse({'error': 'Invalid PD value'}, status=400)
 
+        selected_size = request.POST.get('selected_size', '').strip()
+
         # 👇 2. Send it to the Cart Class!
-        cart.add(product=product, quantity=product_qty, prescription=prescription_data)
+        cart.add(product=product, quantity=1, prescription=prescription_data, selected_size=selected_size)
 
         cart_quantity = cart.__len__()
         response = JsonResponse({'qty': cart_quantity})

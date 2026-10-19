@@ -49,6 +49,100 @@
       display: block;
     }
   }
+  .nav-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .nav-search-btn {
+    color: #111;
+    background: transparent;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    z-index: 2;
+  }
+  .nav-search-btn:hover {
+    opacity: 0.7;
+    transform: scale(1.08);
+  }
+  .nav-search-input {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    opacity: 0;
+    padding: 4px 0;
+    border: none;
+    border-bottom: 1.5px solid #111;
+    background-color: #ffffff;
+    color: #111;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: none;
+    outline: none;
+    pointer-events: none;
+    transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.2s ease, padding 0.3s ease;
+  }
+  .nav-search-input::placeholder {
+    color: #888;
+    font-weight: 400;
+  }
+  .nav-search-input.open {
+    width: 210px;
+    opacity: 1;
+    padding: 4px 6px;
+    pointer-events: auto;
+  }
+  @media (max-width: 575.98px) {
+    .nav-search-input.open {
+      width: 150px;
+    }
+  }
+  .nav-fav-link {
+    color: #111;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-decoration: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .nav-fav-link:hover {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+  .nav-fav-link svg {
+    transition: fill 0.25s ease, stroke 0.25s ease;
+  }
+  .nav-fav-link.has-favs svg {
+    fill: #e11d48;
+    stroke: #e11d48;
+  }
+  .nav-fav-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #111;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    min-width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    line-height: 1;
+    letter-spacing: 0;
+  }
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white py-4 border-bottom sticky-top">
@@ -116,11 +210,10 @@
 
         <li class="nav-item d-lg-none mt-3 pt-3 border-top">
           {% if user.is_authenticated %}
-            <a class="nav-link px-0 text-dark" href="{% url 'profile' %}">Cont ({{ user.username }})</a>
-            <a class="nav-link px-0 text-muted" href="{% url 'logout' %}">Deconectare</a>
+            <a class="nav-link px-0 text-dark" href="{% url 'profile' %}">Contul Meu ({{ user.username }})</a>
           {% else %}
             <a class="nav-link px-0 text-dark" href="{% url 'login' %}">Autentificare</a>
-            <a class="nav-link px-0 text-dark" href="{% url 'register' %}">Înregistrare</a>
+            <a class="nav-link px-0 text-dark d-none" href="{% url 'register' %}">Înregistrare</a>
           {% endif %}
         </li>
       </ul>
@@ -132,12 +225,39 @@
     </a>
 
     <div class="d-flex align-items-center justify-content-end w-100 gap-4 text-uppercase small fw-bold" style="letter-spacing: 1.5px;">
+      <div class="nav-search-wrapper" id="navSearchWrapper">
+        <form action="{% url 'shop' %}" method="GET" class="d-flex align-items-center m-0" id="navSearchForm">
+          <input
+            type="text"
+            name="q"
+            id="navSearchInput"
+            class="nav-search-input{% if request.GET.q %} open{% endif %}"
+            placeholder="Caută brand sau cod..."
+            value="{{ request.GET.q|default:'' }}"
+            autocomplete="off"
+            aria-label="Caută după brand sau cod produs"
+          >
+          <button type="button" class="nav-search-btn" id="navSearchBtn" aria-label="Caută">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <a href="{% url 'favourites' %}" class="nav-fav-link {% if favourites_count > 0 %}has-favs{% endif %}" id="navFavLink" aria-label="Produse Favorite" title="Favorite">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span id="fav-qty" class="nav-fav-badge" style="display: {% if favourites_count > 0 %}inline-flex{% else %}none{% endif %};">{{ favourites_count }}</span>
+      </a>
+
       {% if user.is_authenticated %}
           <a href="{% url 'profile' %}" class="text-dark text-decoration-none d-none d-lg-block">Contul Meu</a>
-          <a href="{% url 'logout' %}" class="text-muted text-decoration-none d-none d-lg-block">Deconectare</a>
       {% else %}
           <a href="{% url 'login' %}" class="text-dark text-decoration-none d-none d-lg-block">Autentificare</a>
-          <a href="{% url 'register' %}" class="text-dark text-decoration-none d-none d-lg-block">Înregistrare</a>
+          <a href="{% url 'register' %}" class="text-dark text-decoration-none d-none">Înregistrare</a>
       {% endif %}
 
       <a href="{% url 'cart_summary' %}" class="text-dark text-decoration-none position-relative">
@@ -147,3 +267,39 @@
 
   </div>
 </nav>
+
+<script>
+  (function() {
+    const wrapper = document.getElementById('navSearchWrapper');
+    const form = document.getElementById('navSearchForm');
+    const input = document.getElementById('navSearchInput');
+    const btn = document.getElementById('navSearchBtn');
+
+    if (!wrapper || !form || !input || !btn) return;
+
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (!input.classList.contains('open')) {
+        input.classList.add('open');
+        input.focus();
+      } else if (input.value.trim() !== '') {
+        form.submit();
+      } else {
+        input.classList.remove('open');
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!wrapper.contains(e.target) && input.value.trim() === '') {
+        input.classList.remove('open');
+      }
+    });
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        input.classList.remove('open');
+        input.blur();
+      }
+    });
+  })();
+</script>

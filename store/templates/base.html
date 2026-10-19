@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,6 +95,69 @@ body {
     line-height: 0.8;
     margin-left: 15px;
 }
+
+/* ❤️ FAVOURITE HEART BUTTON & ANIMATION */
+.fav-heart-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: #222;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    outline: none;
+}
+
+.fav-heart-btn:hover {
+    background: #ffffff;
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.fav-heart-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: transparent;
+    stroke: currentColor;
+    stroke-width: 2;
+    transition: fill 0.25s ease, stroke 0.25s ease, transform 0.25s ease;
+}
+
+.fav-heart-btn.active {
+    color: #e11d48;
+    border-color: rgba(225, 29, 72, 0.2);
+}
+
+.fav-heart-btn.active svg {
+    fill: #e11d48;
+    stroke: #e11d48;
+}
+
+.fav-heart-btn.animating svg {
+    animation: heartPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes heartPop {
+    0% {
+        transform: scale(1);
+    }
+    35% {
+        transform: scale(1.42);
+    }
+    65% {
+        transform: scale(0.88);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
 </style>
 </head>
 <body>
@@ -124,6 +188,72 @@ body {
     }
 
     requestAnimationFrame(raf)
+
+    function getCsrfToken() {
+        const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function toggleFavourite(event, productId, btn) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        const isNowActive = !btn.classList.contains('active');
+        const allButtons = document.querySelectorAll(`.fav-heart-btn[data-product-id="${productId}"]`);
+
+        allButtons.forEach(b => {
+            b.classList.remove('animating');
+            void b.offsetWidth; // trigger reflow for animation restart
+            if (isNowActive) {
+                b.classList.add('active', 'animating');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+
+        fetch(`/favourites/toggle/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(res => res.json())
+        .then(data => {
+            const navFavCount = document.getElementById('fav-qty');
+            const navFavLink = document.getElementById('navFavLink');
+            if (navFavCount) {
+                navFavCount.textContent = data.count;
+                navFavCount.style.display = data.count > 0 ? 'inline-flex' : 'none';
+            }
+            if (navFavLink) {
+                if (data.count > 0) {
+                    navFavLink.classList.add('has-favs');
+                } else {
+                    navFavLink.classList.remove('has-favs');
+                }
+            }
+            if (!data.is_favourite) {
+                const favPageCard = document.getElementById(`fav-product-col-${productId}`);
+                if (favPageCard) {
+                    favPageCard.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                    favPageCard.style.opacity = '0';
+                    favPageCard.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        favPageCard.remove();
+                        const remaining = document.querySelectorAll('[id^="fav-product-col-"]');
+                        if (remaining.length === 0) {
+                            const emptyState = document.getElementById('fav-empty-state');
+                            if (emptyState) emptyState.classList.remove('d-none');
+                        }
+                    }, 250);
+                }
+            }
+        })
+        .catch(err => console.error('Favourite toggle error:', err));
+    }
 </script>
 
 <footer class="bg-dark text-white pt-5 pb-3 mt-5">
@@ -139,7 +269,8 @@ body {
                 <h6 class="text-uppercase mb-3" style="letter-spacing: 1.5px;">Asistență Clienți</h6>
                 <ul class="list-unstyled small text-white-50">
                     <li class="mb-2"><a href="{% url 'contact' %}" class="text-white-50 text-decoration-none">Contactează-ne</a></li>
-                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Livrare & Returnări</a></li>
+                    <li class="mb-2"><a href="{% url 'livrare_si_retur' %}" class="text-white-50 text-decoration-none">Livrare & Retur</a></li>
+                    <li class="mb-2"><a href="{% url 'formular_retur' %}" class="text-white-50 text-decoration-none">Formular de Retur</a></li>
                     <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Întrebări Frecvente (FAQ)</a></li>
                 </ul>
             </div>
@@ -147,15 +278,25 @@ body {
             <div class="col-md-4">
                 <h6 class="text-uppercase mb-3" style="letter-spacing: 1.5px;">Boutique Principal</h6>
                 <ul class="list-unstyled small text-white-50">
-                    <li class="mb-2">Piața Unirii Nr. 1</li>
-                    <li class="mb-2">Timișoara, TM 300085</li>
-                    <li class="mb-2 mt-3">Luni-Sâmbătă: 10:00 - 20:00</li>
+                    <li class="mb-2">Strada Avram Iancu 34</li>
+                    <li class="mb-2">Satu Mare, România 447230</li>
+                    <li class="mb-2 mt-3">Luni-Sâmbătă: 10:00 - 19:00</li>
                 </ul>
             </div>
 
         </div>
 
         <hr class="border-secondary mt-5 mb-4">
+
+        <!-- ANPC SAL & SOL Mandatory Pictograms -->
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 mb-4">
+            <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer" title="ANPC - Soluționarea Alternativă a Litigiilor (SAL)" class="d-inline-block">
+                <img src="{% static 'images/anpc-sal.svg' %}" alt="ANPC - Soluționarea Alternativă a Litigiilor" style="height: 50px; width: auto; border-radius: 8px; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            </a>
+            <a href="https://consumer-redress.ec.europa.eu/site-relocation_en" target="_blank" rel="noopener noreferrer" title="Soluționarea Online a Litigiilor (SOL)" class="d-inline-block">
+                <img src="{% static 'images/anpc-sol.svg' %}" alt="Soluționarea Online a Litigiilor (SOL)" style="height: 50px; width: auto; border-radius: 8px; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            </a>
+        </div>
 
         <div class="text-center small text-white-50" style="letter-spacing: 1px;">
             &copy; {% now "Y" %} Imagister. Toate drepturile rezervate.

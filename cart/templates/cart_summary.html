@@ -56,7 +56,14 @@
 
                 <div class="col-md-6 ps-md-4">
                     <h5 class="text-uppercase small fw-bold mb-1" style="letter-spacing: 1.5px;">{{ product.brand }}</h5>
-                    <p class="text-muted small mb-2">{% if product.category == 'SUN' %}Ochelari de soare{% else %}Ochelari de vedere{% endif %} • {{ product.color }}</p>
+                    <p class="text-muted small mb-2">
+                        {% if product.category == 'SUN' %}Ochelari de soare{% else %}Ochelari de vedere{% endif %} • {{ product.color }}
+                        {% for key, value in quantities.items %}
+                            {% if key == product.id|slugify and value.size %}
+                                • Mărime: <strong>{{ value.size }}</strong>
+                            {% endif %}
+                        {% endfor %}
+                    </p>
                     <h6 class="mb-4">{{ product.price }} RON</h6>
 
                     {% for key, value in quantities.items %}
@@ -76,13 +83,10 @@
                 </div>
 
                 <div class="col-md-3 text-md-end">
-                    <div class="mb-3">
+                    <div class="mb-3 d-none">
                         <label class="small text-uppercase fw-bold d-block mb-2" style="letter-spacing: 1px; font-size: 0.65rem;">Cantitate</label>
                         <select class="form-select form-select-sm rounded-0 border-0 bg-light shadow-none w-auto ms-md-auto update-qty-select" data-index="{{ product.id }}">
-                            <option value="1" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 1 %}selected{% endif %}{% endif %}{% endfor %}>1</option>
-                            <option value="2" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 2 %}selected{% endif %}{% endif %}{% endfor %}>2</option>
-                            <option value="3" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 3 %}selected{% endif %}{% endif %}{% endfor %}>3</option>
-                            <option value="4" {% for key, value in quantities.items %}{% if key == product.id|slugify %}{% if value.qty == 4 %}selected{% endif %}{% endif %}{% endfor %}>4</option>
+                            <option value="1" selected>1</option>
                         </select>
                     </div>
                     <a href="{% url 'cart_delete' product.id %}" class="remove-item-link">Șterge</a>

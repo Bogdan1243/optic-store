@@ -105,9 +105,11 @@
 
 <div class="container-fluid px-4 px-xl-5 mb-5" id="products">
 
-    <div class="text-center mb-5 pb-4">
+    <div class="text-center mb-5 pb-4" id="page-heading">
         {% if title %}
             <h1 class="premium-heading display-4 mb-2">{{ title }}</h1>
+        {% elif search_query %}
+            <h1 class="premium-heading display-4 mb-2">Rezultate pentru „{{ search_query }}”</h1>
         {% elif not is_filtered %}
             <h1 class="premium-heading display-4 mb-2">Colecția Noastră</h1>
         {% else %}
@@ -125,6 +127,9 @@
                 <form id="filter-form" method="GET" action="{% if cat_code %}{% url 'category' cat_code %}{% else %}{% url 'shop' %}{% endif %}">
                     <input type="hidden" name="sex" id="id_sex" value="{{ sex_query|default:'All' }}">
                     <input type="hidden" name="brand" id="id_brand" value="{{ brand_query|default:'All' }}">
+                    {% if search_query %}
+                    <input type="hidden" name="q" id="id_q" value="{{ search_query }}">
+                    {% endif %}
                     <input type="hidden" name="page" id="id_page" value="{{ products.number|default:1 }}">
 
                     <div class="mb-5">
@@ -161,8 +166,18 @@
                                 <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
                                     <div class="product-image-wrapper mb-3 position-relative">
                                         {% if product.is_new %}
-                                            <span class="position-absolute top-0 end-0 m-3 small text-uppercase fw-bold" style="letter-spacing: 1px; background: #000; color: #fff; padding: 4px 10px;">Nou</span>
+                                            <span class="position-absolute top-0 start-0 m-3 small text-uppercase fw-bold" style="letter-spacing: 1px; background: #000; color: #fff; padding: 4px 10px; z-index: 4;">Nou</span>
                                         {% endif %}
+                                        <button type="button"
+                                                class="fav-heart-btn position-absolute top-0 end-0 m-2 {% if product.id in favourite_ids %}active{% endif %}"
+                                                data-product-id="{{ product.id }}"
+                                                onclick="toggleFavourite(event, {{ product.id }}, this)"
+                                                aria-label="Adaugă la favorite"
+                                                title="Favorite">
+                                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                            </svg>
+                                        </button>
                                         {% if product.get_image_url %}
                                             <img src="{{ product.get_image_url }}" class="img-fluid" alt="{{ product.brand }}">
                                         {% else %}
@@ -208,7 +223,7 @@
                             <li class="page-item">
                                 <a class="page-link rounded border px-3 py-2 text-dark bg-light text-decoration-none small text-uppercase"
                                    style="letter-spacing: 1px;"
-                                   href="?page={{ products.previous_page_number }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}"
+                                   href="?page={{ products.previous_page_number }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                                    onclick="goToPage({{ products.previous_page_number }}); return false;">
                                     &larr; Înapoi
                                 </a>
@@ -231,7 +246,7 @@
                             {% else %}
                                 <li class="page-item">
                                     <a class="page-link rounded border px-3 py-2 text-dark bg-white text-decoration-none"
-                                       href="?page={{ num }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}"
+                                       href="?page={{ num }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                                        onclick="goToPage({{ num }}); return false;">{{ num }}</a>
                                 </li>
                             {% endif %}
@@ -241,7 +256,7 @@
                             <li class="page-item">
                                 <a class="page-link rounded border px-3 py-2 text-dark bg-light text-decoration-none small text-uppercase"
                                    style="letter-spacing: 1px;"
-                                   href="?page={{ products.next_page_number }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}"
+                                   href="?page={{ products.next_page_number }}{% if sex_query %}&sex={{ sex_query }}{% endif %}{% if brand_query %}&brand={{ brand_query }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                                    onclick="goToPage({{ products.next_page_number }}); return false;">
                                     Înainte &rarr;
                                 </a>
