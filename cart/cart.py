@@ -66,7 +66,8 @@ class Cart():
 
     def clear(self):
         # Delete the cart from the session
-        del self.session['session_key']
+        if 'session_key' in self.session:
+            del self.session['session_key']
         self.session.modified = True
 
     def get_quants(self):

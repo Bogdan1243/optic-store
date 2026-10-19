@@ -165,7 +165,9 @@
                             <div class="product-card h-100">
                                 <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
                                     <div class="product-image-wrapper mb-3 position-relative">
-                                        {% if product.is_new %}
+                                        {% if not product.in_stock %}
+                                            <span class="position-absolute top-0 start-0 m-3 small text-uppercase fw-bold" style="letter-spacing: 1px; background: #6c757d; color: #fff; padding: 4px 10px; z-index: 4;">Stoc Epuizat</span>
+                                        {% elif product.is_new %}
                                             <span class="position-absolute top-0 start-0 m-3 small text-uppercase fw-bold" style="letter-spacing: 1px; background: #000; color: #fff; padding: 4px 10px; z-index: 4;">Nou</span>
                                         {% endif %}
                                         <button type="button"

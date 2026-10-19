@@ -30,7 +30,15 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG' , 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'optic-store.onrender.com,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    h.strip() for h in os.getenv(
+        'ALLOWED_HOSTS',
+        'imagister.onrender.com,optic-store.onrender.com,.onrender.com,localhost,127.0.0.1'
+    ).split(',') if h.strip()
+]
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 
@@ -131,7 +139,7 @@ USE_TZ = True
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Add this line if it's missing:
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -189,7 +197,16 @@ if not DEBUG:
     # Secure cookies
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://imagister.onrender.com').split(',')
+    CSRF_TRUSTED_ORIGINS = [
+        o.strip() for o in os.getenv(
+            'CSRF_TRUSTED_ORIGINS',
+            'https://imagister.onrender.com,https://optic-store.onrender.com,https://*.onrender.com'
+        ).split(',') if o.strip()
+    ]
+    if RENDER_EXTERNAL_HOSTNAME:
+        render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+        if render_origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(render_origin)
 
     # Security headers
     SECURE_CONTENT_TYPE_NOSNIFF = True

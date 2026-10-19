@@ -32,6 +32,8 @@ HEADER_MAPPING = {
     'price': 'price',
     'pret': 'price',
     'preț': 'price',
+    'stock': 'stock',
+    'stoc': 'stock',
     'category': 'category',
     'categorie': 'category',
     'sex': 'sex',
@@ -105,7 +107,7 @@ def generate_sample_xlsx():
     ws.title = "Product Import Template"
 
     headers = [
-        'brand', 'model_code', 'color', 'color_hex', 'size', 'price',
+        'brand', 'model_code', 'color', 'color_hex', 'size', 'price', 'stock',
         'category', 'sex', 'description', 'image', 'ar_image', 'gallery_images',
         'frame_shape', 'frame_material', 'frame_finish', 'rim_type',
         'bridge_length', 'temple_length', 'hinge_to_hinge', 'lens_color',
@@ -117,7 +119,7 @@ def generate_sample_xlsx():
 
     # Example Row 1
     ws.append([
-        'Ray-Ban', 'RB2140', 'Black', '#000000', '50-22', 150.00,
+        'Ray-Ban', 'RB2140', 'Black', '#000000', '50-22', 150.00, 1,
         'SUN', 'Unisex', 'Classic Wayfarer sunglasses with green lenses.',
         'rb2140_black.jpg', 'rb2140_black_ar.png', 'rb2140_side.jpg, rb2140_angle.jpg',
         'Square', 'Acetate', 'Polished', 'Full Rim',
@@ -128,7 +130,7 @@ def generate_sample_xlsx():
 
     # Example Row 2
     ws.append([
-        'Oakley', 'OO9014', 'Matte Black', '#111111', '60-18', 180.00,
+        'Oakley', 'OO9014', 'Matte Black', '#111111', '60-18', 180.00, 1,
         'OPT', 'Men', 'Durable optical frames designed for sport performance.',
         'oo9014_front.jpg', '', 'oo9014_side.jpg',
         'Rectangular', 'O Matter', 'Matte', 'Full Rim',
@@ -159,7 +161,7 @@ def export_products_to_xlsx(queryset=None):
     ws.title = "Products Export"
 
     headers = [
-        'id', 'brand', 'model_code', 'color', 'color_hex', 'size', 'price',
+        'id', 'brand', 'model_code', 'color', 'color_hex', 'size', 'price', 'stock',
         'category', 'sex', 'description', 'image', 'ar_image', 'gallery_images',
         'frame_shape', 'frame_material', 'frame_finish', 'rim_type',
         'bridge_length', 'temple_length', 'hinge_to_hinge', 'lens_color',
@@ -187,6 +189,7 @@ def export_products_to_xlsx(queryset=None):
             product.color_hex or '',
             product.size or '',
             float(product.price) if product.price is not None else 0.0,
+            product.stock if product.stock is not None else 1,
             product.category or 'SUN',
             product.sex or 'Unisex',
             product.description or '',
@@ -407,6 +410,14 @@ def import_products_from_excel(excel_file_or_path, zip_file_or_path=None, image_
         prog_raw = get_val('progressive_friendly', 'false').lower()
         progressive_friendly = prog_raw in ['true', '1', 'yes', 'da', 't']
 
+        stock_raw = get_val('stock')
+        stock_val = None
+        if stock_raw is not None and stock_raw != '':
+            try:
+                stock_val = max(0, int(float(stock_raw)))
+            except ValueError:
+                results['warnings'].append(f"Row {row_idx}: Invalid stock value '{stock_raw}', keeping default.")
+
         product = None
         id_raw = get_val('id')
         if id_raw:
@@ -434,6 +445,7 @@ def import_products_from_excel(excel_file_or_path, zip_file_or_path=None, image_
                 color=color,
                 size=size,
                 price=price,
+                stock=stock_val if stock_val is not None else 1,
                 description=description,
                 category=category,
                 sex=sex,
@@ -444,6 +456,8 @@ def import_products_from_excel(excel_file_or_path, zip_file_or_path=None, image_
             product.color = color
             product.size = size
             product.price = price
+            if stock_val is not None:
+                product.stock = stock_val
             if description or 'description' in header_index_map:
                 product.description = description
             product.category = category

@@ -1,0 +1,175 @@
+<form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger rounded-0 small mb-4">
+            {% for err in form.non_field_errors %}
+                <div>{{ err }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Număr Comandă -->
+        <div class="col-md-6">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Numărul Comenzii <span class="text-danger">*</span>
+            </label>
+            {{ form.order_number }}
+            {% if form.order_number.errors %}
+                <div class="text-danger small mt-1">{{ form.order_number.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Nume Complet -->
+        <div class="col-md-6">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Nume și Prenume <span class="text-danger">*</span>
+            </label>
+            {{ form.full_name }}
+            {% if form.full_name.errors %}
+                <div class="text-danger small mt-1">{{ form.full_name.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-6">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Adresă de E-mail <span class="text-danger">*</span>
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Telefon -->
+        <div class="col-md-6">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Număr de Telefon <span class="text-danger">*</span>
+            </label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+                <div class="text-danger small mt-1">{{ form.phone.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Produse de returnat -->
+        <div class="col-12">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Produsele pe care doriți să le returnați <span class="text-danger">*</span>
+            </label>
+            {{ form.products }}
+            <div class="form-text small text-muted">
+                Menționați denumirea/codul modelului și cantitatea (ex. 1x Ray-Ban RB2132 Negru Mat).
+            </div>
+            {% if form.products.errors %}
+                <div class="text-danger small mt-1">{{ form.products.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Motivul Returului -->
+        <div class="col-md-6">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Motivul Returului
+            </label>
+            {{ form.return_reason }}
+            <div class="form-text small text-muted">
+                Nu este obligatorie justificarea deciziei în primele 14 zile calendaristice.
+            </div>
+            {% if form.return_reason.errors %}
+                <div class="text-danger small mt-1">{{ form.return_reason.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Metoda de rambursare -->
+        <div class="col-md-6">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Metoda de Rambursare <span class="text-danger">*</span>
+            </label>
+            {{ form.refund_method }}
+            {% if form.refund_method.errors %}
+                <div class="text-danger small mt-1">{{ form.refund_method.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Cont IBAN & Titular (pentru transfer bancar) -->
+        <div class="col-md-7" id="ibanFieldWrapper">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Cont IBAN <span id="ibanRequiredStar" class="text-danger" style="display: none;">*</span>
+            </label>
+            {{ form.iban }}
+            <div class="form-text small text-muted">
+                Necesar dacă ați ales rambursarea prin transfer bancar (nu se fac rambursări în numerar).
+            </div>
+            {% if form.iban.errors %}
+                <div class="text-danger small mt-1">{{ form.iban.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-5" id="accountHolderWrapper">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Titular Cont Bancar
+            </label>
+            {{ form.account_holder }}
+            {% if form.account_holder.errors %}
+                <div class="text-danger small mt-1">{{ form.account_holder.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Observații suplimentare -->
+        <div class="col-12">
+            <label class="small text-uppercase fw-bold mb-2 d-block" style="letter-spacing: 1px;">
+                Observații Suplimentare (Opțional)
+            </label>
+            {{ form.observations }}
+            {% if form.observations.errors %}
+                <div class="text-danger small mt-1">{{ form.observations.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Confirmare condiții -->
+        <div class="col-12">
+            <div class="form-check p-3 bg-light border">
+                <input
+                    class="form-check-input ms-0 me-2"
+                    type="checkbox"
+                    name="{{ form.accept_conditions.html_name }}"
+                    id="id_accept_conditions"
+                    {% if form.accept_conditions.value %}checked{% endif %}
+                    required
+                >
+                <label class="form-check-label small text-muted" for="id_accept_conditions" style="line-height: 1.6;">
+                    {{ form.accept_conditions.label }} <span class="text-danger">*</span>
+                </label>
+                {% if form.accept_conditions.errors %}
+                    <div class="text-danger small mt-1">{{ form.accept_conditions.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-premium w-100 py-3">
+                Trimite Solicitarea de Retur
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+    (function() {
+        const refundSelect = document.getElementById('id_refund_method');
+        const ibanStar = document.getElementById('ibanRequiredStar');
+        if (!refundSelect || !ibanStar) return;
+
+        function updateIbanState() {
+            if (refundSelect.value === 'iban') {
+                ibanStar.style.display = 'inline';
+            } else {
+                ibanStar.style.display = 'none';
+            }
+        }
+        refundSelect.addEventListener('change', updateIbanState);
+        updateIbanState();
+    })();
+</script>

@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="position-relative overflow-hidden text-center bg-light"
-     style="min-height: 80vh; background: url('static/images/250917_VOGUE_STILL_4657.jpg') no-repeat center center/cover;">
+     style="min-height: 80vh; background: url('{% static 'images/250917_VOGUE_STILL_4657.jpg' %}') no-repeat center center/cover;">
 
     <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(0, 0, 0, 0.45);"></div>
 
@@ -29,7 +29,7 @@
     <div class="row g-4">
         <div class="col-md-6">
             <div class="card bg-dark text-white border-0 overflow-hidden rounded-0">
-                <img src="static/images/RX6489_J_ST__40x30.jpg" class="card-img opacity-50" alt="Ochelari de Vedere" style="height: 420px; object-fit: cover;">
+                <img src="{% static 'images/RX6489_J_ST__40x30.jpg' %}" class="card-img opacity-50" alt="Ochelari de Vedere" style="height: 420px; object-fit: cover;">
                 <div class="card-img-overlay d-flex flex-column justify-content-center align-items-center text-center p-4">
                     <h3 class="premium-heading display-5 text-white mb-2">Ochelari de Vedere</h3>
                     <p class="card-text text-white-50 small text-uppercase mb-4" style="letter-spacing: 1.5px;">Lentile de vedere personalizate perfect pentru tine</p>
@@ -39,7 +39,7 @@
         </div>
         <div class="col-md-6">
             <div class="card bg-dark text-white border-0 overflow-hidden rounded-0">
-                <img src="static/images/RB2132__US_38.1x38.1.jpg" class="card-img opacity-50" alt="Ochelari de Soare" style="height: 420px; object-fit: cover;">
+                <img src="{% static 'images/RB2132__US_38.1x38.1.jpg' %}" class="card-img opacity-50" alt="Ochelari de Soare" style="height: 420px; object-fit: cover;">
                 <div class="card-img-overlay d-flex flex-column justify-content-center align-items-center text-center p-4">
                     <h3 class="premium-heading display-5 text-white mb-2">Ochelari de Soare</h3>
                     <p class="card-text text-white-50 small text-uppercase mb-4" style="letter-spacing: 1.5px;">Protecție UV maximă îmbinată cu design de lux</p>

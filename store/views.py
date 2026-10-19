@@ -160,16 +160,21 @@ def filter_products_by_search(queryset, search_query):
 def deduplicate_products_by_model(queryset):
     """
     Deduplicates a queryset/list of products by model_code.
-    Only the first product for each model_code is kept in the catalog listing.
+    Only the first product for each model_code is kept in the catalog listing
+    (preferring an in-stock variant if the first variant is out of stock).
     Products without model_code remain individual products.
     """
-    seen_models = set()
+    seen_model_idx = {}
     deduped = []
     for product in queryset:
         if product.model_code:
-            if product.model_code not in seen_models:
-                seen_models.add(product.model_code)
+            if product.model_code not in seen_model_idx:
+                seen_model_idx[product.model_code] = len(deduped)
                 deduped.append(product)
+            else:
+                idx = seen_model_idx[product.model_code]
+                if not deduped[idx].in_stock and product.in_stock:
+                    deduped[idx] = product
         else:
             deduped.append(product)
     return deduped

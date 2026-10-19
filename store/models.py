@@ -19,10 +19,15 @@ class Product(models.Model):
     color_hex = models.CharField(max_length=30, blank=True, null=True, verbose_name="Cod Culoare / Hex (ex: #000000 sau #8B4513)")
     size = models.CharField(max_length=20)
     price= models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField(default=1, verbose_name="Stoc")
     image = models.ImageField(upload_to='products/%Y/%m/%d')
     ar_image = models.ImageField(upload_to='uploads/ar_images/', blank=True, null=True,
                                  help_text="Upload a transparent PNG of the glasses front-view.")
     description = models.TextField(blank = True, null = True)
+
+    @property
+    def in_stock(self):
+        return self.stock > 0
 
     @property
     def get_image_url(self):
@@ -203,6 +208,19 @@ class Order(models.Model):
 
     paid = models.BooleanField(default=False)
 
+    def save(self, *args, **kwargs):
+        was_paid = False
+        if self.pk:
+            old = Order.objects.filter(pk=self.pk).values('paid').first()
+            if old:
+                was_paid = old['paid']
+        super().save(*args, **kwargs)
+        if self.paid and not was_paid:
+            for item in self.orderitem_set.select_related('product').all():
+                product = item.product
+                product.stock = max(0, product.stock - item.quantity)
+                product.save(update_fields=['stock'])
+
     def __str__(self):
         return f'Order - {str(self.id)}'
 
@@ -223,6 +241,14 @@ class OrderItem(models.Model):
     os_cyl = models.CharField(max_length=10, blank=True, null=True)
     os_axis = models.CharField(max_length=10, blank=True, null=True)
     pd = models.CharField(max_length=10, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and self.order_id and self.order.paid:
+            product = self.product
+            product.stock = max(0, product.stock - self.quantity)
+            product.save(update_fields=['stock'])
 
     def __str__(self):
         return f"{self.quantity} x {self.product.brand}"

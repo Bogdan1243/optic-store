@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5 my-4">
+    <div class="text-center mb-5">
+        <p class="text-uppercase small text-muted mb-2" style="letter-spacing: 2.5px;">Asistență Clienți • Imagister</p>
+        <h1 class="premium-heading display-4 fw-bold mb-3">Formular de Retur</h1>
+        <p class="text-muted mx-auto" style="max-width: 680px; line-height: 1.7;">
+            Completați formularul de mai jos pentru a notifica intenția de returnare a produselor în termen de 14 zile calendaristice de la primirea coletului.
+            Pentru informații complete, consultați pagina <a href="{% url 'livrare_si_retur' %}" class="text-dark fw-bold text-decoration-underline">Livrare și Retur</a>.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Informații rapide pe coloana stângă -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-0 p-4 h-100">
+                <div class="card-body">
+                    <h4 class="premium-heading mb-3">Informații Utile</h4>
+                    <p class="small text-muted mb-3" style="line-height: 1.7;">
+                        Pentru ca returul să fie acceptat, ochelarii trebuie să fie în <strong>stare impecabilă</strong> și în <strong>ambalajul original complet</strong> (toc original, lavetă nefolosită, etichete și certificate).
+                    </p>
+                    <hr class="my-3">
+                    <p class="small mb-3" style="line-height: 1.7;">
+                        <strong>📍 Adresa de expediere a returului:</strong><br>
+                        Imagister<br>
+                        Strada Avram Iancu 34<br>
+                        Satu Mare, România, 440108
+                    </p>
+                    <p class="small mb-3" style="line-height: 1.7;">
+                        <strong>🚚 Expediere:</strong><br>
+                        Doar prin firmă de curierat rapid (fără Poșta Română și fără ramburs la destinație). Nu lipiți AWB-ul direct pe ambalajul original al produsului.
+                    </p>
+                    <p class="small mb-4" style="line-height: 1.7;">
+                        <strong>📧 Contact suport:</strong><br>
+                        <a href="mailto:clinica.imagister@gmail.com" class="text-dark text-decoration-underline">clinica.imagister@gmail.com</a><br>
+                        +40 771 603 348
+                    </p>
+                    <a href="{% url 'livrare_si_retur' %}" class="btn btn-outline-dark w-100 rounded-0 small text-uppercase py-2" style="letter-spacing: 1.5px;">
+                        ← Citește Politica de Retur
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formularul propriu-zis -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-0 p-4 p-md-5">
+                <div class="card-body p-0">
+                    <h3 class="premium-heading mb-4">Datele Solicitării de Retur</h3>
+                    {% include 'partials/return_form_fields.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db import transaction
 from .cart import Cart
 from store.models import Product, Order, OrderItem
 from django.http import JsonResponse
@@ -34,6 +35,9 @@ def cart_add(request):
         product_qty = int(request.POST.get('product_qty', 1))
 
         product = get_object_or_404(Product, id=product_id)
+
+        if not product.in_stock or product.stock < product_qty:
+            return JsonResponse({'error': 'Acest produs nu mai este în stoc.'}, status=400)
 
         # Catch the prescription data...
         pd_val = request.POST.get('pd')
@@ -90,6 +94,16 @@ def cart_delete(request, product_id):
 def checkout(request):
     cart = Cart(request)
     cart_products = cart.get_prods()
+    if not cart_products:
+        return redirect('cart_summary')
+
+    out_of_stock = [p for p in cart_products if not p.in_stock]
+    if out_of_stock:
+        for p in out_of_stock:
+            cart.delete(product=p.id)
+            messages.error(request, f"Ne pare rău, produsul {p.brand} ({p.color}) nu mai este în stoc și a fost eliminat din coș.")
+        return redirect('cart_summary')
+
     totals = cart.get_total()
 
     return render(request, "checkout.html", {
@@ -104,6 +118,24 @@ def process_order(request):
         cart_products = cart.get_prods()
         quantities = cart.get_quants()
         totals = cart.get_total()
+
+        if not cart_products:
+            messages.error(request, "Coșul tău este gol.")
+            return redirect('cart_summary')
+
+        # Verify stock availability before creating the order
+        out_of_stock = []
+        for product in cart_products:
+            product_id = str(product.id)
+            qty = int(quantities[product_id]['qty']) if product_id in quantities else 1
+            if product.stock < qty:
+                out_of_stock.append(product)
+
+        if out_of_stock:
+            for p in out_of_stock:
+                cart.delete(product=p.id)
+                messages.error(request, f"Ne pare rău, produsul {p.brand} ({p.color}) nu mai este în stoc.")
+            return redirect('cart_summary')
 
         # Get Billing Info
         full_name = request.POST['full_name']
@@ -212,34 +244,35 @@ def payment_success(request):
     order_id = request.GET.get('order_id')
 
     if order_id:
-        order = Order.objects.get(id=order_id)
-        order.paid = True
-        order.save()
+        with transaction.atomic():
+            order = get_object_or_404(Order, id=order_id)
+            if not order.paid:
+                order.paid = True
+                order.save()  # Automatically decrements stock on each ordered product
 
-        # ... inside payment_success view ...
-        order_items = OrderItem.objects.filter(order=order)
+                order_items = OrderItem.objects.filter(order=order)
 
-        # 👇 --- 1. SEND UPGRADED NOTIFICATION TO YOU --- 👇
-        admin_subject = f"New Paid Order! 💸 (Order #{order.id})"
-        admin_body = f"Customer: {order.full_name}\nEmail: {order.email}\nTotal: {order.amount_paid} RON\n\n--- ITEMS ORDERED ---\n"
+                # 👇 --- 1. SEND UPGRADED NOTIFICATION TO YOU --- 👇
+                admin_subject = f"New Paid Order! 💸 (Order #{order.id})"
+                admin_body = f"Customer: {order.full_name}\nEmail: {order.email}\nTotal: {order.amount_paid} RON\n\n--- ITEMS ORDERED ---\n"
 
-        for item in order_items:
-            admin_body += f"\n- {item.quantity}x {item.product.brand} ({item.price} RON)\n"
+                for item in order_items:
+                    admin_body += f"\n- {item.quantity}x {item.product.brand} ({item.price} RON)\n"
 
-            # Check if this item has a prescription!
-            if item.pd:
-                admin_body += f"   [RX Details]\n"
-                admin_body += f"   OD (Right): SPH {item.od_sph or '0.00'} | CYL {item.od_cyl or '0.00'} | AXIS {item.od_axis or '0'}\n"
-                admin_body += f"   OS (Left) : SPH {item.os_sph or '0.00'} | CYL {item.os_cyl or '0.00'} | AXIS {item.os_axis or '0'}\n"
-                admin_body += f"   PD: {item.pd}mm\n"
+                    # Check if this item has a prescription!
+                    if item.pd:
+                        admin_body += f"   [RX Details]\n"
+                        admin_body += f"   OD (Right): SPH {item.od_sph or '0.00'} | CYL {item.od_cyl or '0.00'} | AXIS {item.od_axis or '0'}\n"
+                        admin_body += f"   OS (Left) : SPH {item.os_sph or '0.00'} | CYL {item.os_cyl or '0.00'} | AXIS {item.os_axis or '0'}\n"
+                        admin_body += f"   PD: {item.pd}mm\n"
 
-        send_mail(
-            admin_subject,
-            admin_body,
-            settings.DEFAULT_FROM_EMAIL,
-            [settings.ADMIN_NOTIFICATION_EMAIL],
-            fail_silently=False
-        )
+                send_mail(
+                    admin_subject,
+                    admin_body,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [settings.ADMIN_NOTIFICATION_EMAIL],
+                    fail_silently=False
+                )
 
     messages.success(request, "Payment successful! Your glasses are on the way. 🕶️")
     return redirect('home')

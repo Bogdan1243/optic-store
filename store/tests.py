@@ -267,4 +267,84 @@ class ReturnPageAndFormTestCase(TestCase):
         self.assertTrue(response.context['form'].errors.get('iban'))
 
 
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class StockAndOrderTestCase(TestCase):
 
+    def setUp(self):
+        self.product = Product.objects.create(
+            brand='Ray-Ban',
+            model_code='0RB2140',
+            color='Negru',
+            size='M',
+            price=850.00,
+            category='SUN',
+        )
+
+    def test_default_stock_is_one(self):
+        self.assertEqual(self.product.stock, 1)
+        self.assertTrue(self.product.in_stock)
+
+    def test_order_paid_makes_product_unavailable(self):
+        from store.models import Order, OrderItem
+        order = Order.objects.create(
+            full_name='Client 1',
+            email='client1@example.com',
+            shipping_address='Str. Principala 1',
+            amount_paid=850.00,
+            paid=False,
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=1,
+            price=self.product.price,
+        )
+
+        # Before payment, stock is still 1
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 1)
+
+        # Simulate payment_success
+        res = self.client.get(f'/cart/payment_success/?order_id={order.id}')
+        self.assertEqual(res.status_code, 302)
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 0)
+        self.assertFalse(self.product.in_stock)
+
+        # Second client tries to add the now out-of-stock product to cart
+        add_res = self.client.post('/cart/add/', {
+            'action': 'post',
+            'product_id': self.product.id,
+            'product_qty': 1,
+        })
+        self.assertEqual(add_res.status_code, 400)
+        self.assertIn('error', add_res.json())
+
+        # Product detail page shows Stoc Epuizat and disabled button
+        detail_res = self.client.get(f'/product/{self.product.slug}/')
+        self.assertEqual(detail_res.status_code, 200)
+        self.assertContains(detail_res, 'Stoc Epuizat')
+
+    def test_process_order_blocks_out_of_stock_product_already_in_cart(self):
+        from store.models import Order
+        # Client adds product while it is in stock
+        add_res = self.client.post('/cart/add/', {
+            'action': 'post',
+            'product_id': self.product.id,
+            'product_qty': 1,
+        })
+        self.assertEqual(add_res.status_code, 200)
+
+        # Another client buys it first -> stock becomes 0
+        self.product.stock = 0
+        self.product.save()
+
+        # First client tries to place order
+        order_res = self.client.post('/cart/process_order/', {
+            'full_name': 'Client 2',
+            'email': 'client2@example.com',
+            'shipping_address': 'Str. Secundara 2',
+        })
+        self.assertRedirects(order_res, '/cart/')
+        self.assertEqual(Order.objects.count(), 0)

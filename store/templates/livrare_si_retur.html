@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .policy-hero {
+        background-color: #111;
+        color: #fff;
+        padding: 4.5rem 0;
+    }
+    .policy-card {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        padding: 2.25rem;
+        margin-bottom: 1.75rem;
+        transition: box-shadow 0.25s ease;
+    }
+    .policy-card:hover {
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+    }
+    .policy-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background-color: #111;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    .policy-section-title {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: #111;
+        margin: 0;
+    }
+    .policy-note {
+        background-color: #f8f9fa;
+        border-left: 3px solid #111;
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+        font-size: 0.95rem;
+    }
+    .policy-exception-box {
+        background-color: #fff8f8;
+        border-left: 3px solid #dc3545;
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+    }
+    .step-badge {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        color: #111;
+        background: #f0f0f0;
+        padding: 4px 10px;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+    .return-form-wrapper {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+        padding: 3rem;
+    }
+    @media (max-width: 767.98px) {
+        .policy-card {
+            padding: 1.5rem;
+        }
+        .return-form-wrapper {
+            padding: 1.75rem;
+        }
+    }
+</style>
+
+<!-- Hero Banner -->
+<section class="policy-hero text-center mb-5">
+    <div class="container">
+        <p class="text-uppercase small text-white-50 mb-2" style="letter-spacing: 3px;">Asistență Clienți • Imagister</p>
+        <h1 class="premium-heading display-4 fw-bold mb-3">Livrare și Retur</h1>
+        <p class="lead text-white-50 mx-auto mb-4" style="max-width: 760px; font-size: 1.05rem; line-height: 1.7;">
+            Suntem dedicați să vă oferim produse de cea mai înaltă calitate, dar înțelegem că uneori ochelarii aleși pot să nu fie o potrivire perfectă. Mai jos regăsiți toate informațiile necesare pentru a procesa un retur simplu și rapid, în conformitate cu legislația în vigoare privind comerțul electronic.
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
+            <a href="#formular-retur" class="btn btn-light rounded-0 px-4 py-3 text-uppercase small fw-bold" style="letter-spacing: 2px;">
+                Completează Formularul de Retur
+            </a>
+            <a href="{% url 'formular_retur' %}" class="btn btn-outline-light rounded-0 px-4 py-3 text-uppercase small fw-bold" style="letter-spacing: 2px;">
+                Pagină Dedicată Formular ↗
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <!-- Informații Livrare -->
+            <div class="policy-card mb-4" style="border-top: 3px solid #111;">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">🚚</span>
+                    <h2 class="policy-section-title">Informații privind Livrarea</h2>
+                </div>
+                <p class="text-muted mb-2" style="line-height: 1.75;">
+                    Comenzile plasate pe site-ul <strong>Imagister</strong> sunt expediate prin curier rapid oriunde în România. Fiecare pereche de ochelari este verificată cu atenție și ambalată în siguranță înainte de expediere.
+                </p>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light h-100">
+                            <div class="small text-uppercase fw-bold text-dark mb-1" style="letter-spacing: 1px;">Timp de Livrare</div>
+                            <div class="small text-muted">1–3 zile lucrătoare pentru produsele în stoc (rame și ochelari de soare).</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light h-100">
+                            <div class="small text-uppercase fw-bold text-dark mb-1" style="letter-spacing: 1px;">Expediere Sigură</div>
+                            <div class="small text-muted">Livrare prin curier rapid, în cutie de protecție, cu toc și accesorii originale.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light h-100">
+                            <div class="small text-uppercase fw-bold text-dark mb-1" style="letter-spacing: 1px;">Suport Clienți</div>
+                            <div class="small text-muted">
+                                <a href="mailto:clinica.imagister@gmail.com" class="text-dark fw-semibold text-decoration-underline">clinica.imagister@gmail.com</a><br>
+                                +40 771 603 348
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. Termenul de retur -->
+            <div class="policy-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">1</span>
+                    <h2 class="policy-section-title">Termenul de retur</h2>
+                </div>
+                <p class="mb-0" style="line-height: 1.8;">
+                    Aveți la dispoziție <strong>14 zile calendaristice</strong> de la data la care ați intrat în posesia fizică a produsului pentru a solicita returnarea acestuia, fără a fi nevoie să justificați decizia.
+                </p>
+            </div>
+
+            <!-- 2. Condiții de acceptare a returului -->
+            <div class="policy-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">2</span>
+                    <h2 class="policy-section-title">Condiții de acceptare a returului</h2>
+                </div>
+                <p class="mb-3" style="line-height: 1.8;">
+                    Pentru ca returul să fie acceptat, produsele trebuie să îndeplinească următoarele condiții:
+                </p>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3 d-flex align-items-start">
+                        <span class="me-3 mt-1 fw-bold">✓</span>
+                        <div style="line-height: 1.75;">
+                            <strong>Stare impecabilă:</strong> Ochelarii (atât ramele, cât și lentilele) nu trebuie să prezinte urme de purtare, zgârieturi, lovituri, deformări sau alte defecte cauzate de o manipulare necorespunzătoare.
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start">
+                        <span class="me-3 mt-1 fw-bold">✓</span>
+                        <div style="line-height: 1.75;">
+                            <strong>Ambalajul original complet:</strong> Produsul trebuie returnat împreună cu tocul original, laveta din microfibră (curată, nefolosită), etichetele intacte, certificatele de garanție și autenticitate, precum și orice alte accesorii cu care a fost livrat.
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 3. Excepții de la dreptul de retur -->
+            <div class="policy-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">3</span>
+                    <h2 class="policy-section-title">Excepții de la dreptul de retur</h2>
+                </div>
+                <p class="mb-3" style="line-height: 1.8;">
+                    Având în vedere natura anumitor produse comercializate în domeniul opticii, următoarele categorii de articole <strong>nu pot fi returnate</strong>:
+                </p>
+
+                <div class="policy-exception-box">
+                    <p class="mb-2" style="line-height: 1.75;">
+                        <strong>Ochelarii de vedere cu lentile cu prescripție:</strong> Conform O.U.G. 34/2014 (art. 16, lit. c), produsele confecționate după specificațiile prezentate de consumator sau personalizate în mod clar sunt exceptate de la dreptul de retragere. Astfel, lentilele cu dioptrii tăiate și montate special pentru dumneavoastră nu pot fi returnate.
+                    </p>
+                </div>
+
+                <div class="policy-note">
+                    <strong>Notă:</strong> Dacă ați comandat doar rama (cu lentile din plastic demonstrative, fără dioptrii), aceasta poate fi returnată.
+                </div>
+            </div>
+
+
+
+            <!-- 4. Pașii pentru inițierea unui retur -->
+            <div class="policy-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">4</span>
+                    <h2 class="policy-section-title">Pașii pentru inițierea unui retur</h2>
+                </div>
+
+                <div class="row g-4 mt-1">
+                    <div class="col-md-4">
+                        <div class="p-3 border h-100 bg-light">
+                            <span class="step-badge">Pasul 1 • Notificarea</span>
+                            <p class="small mb-0" style="line-height: 1.75;">
+                                Trimiteți un e-mail la adresa <a href="mailto:clinica.imagister@gmail.com" class="fw-bold text-dark text-decoration-underline">clinica.imagister@gmail.com</a> sau completați direct <a href="#formular-retur" class="fw-bold text-dark text-decoration-underline">Formularul de Retur</a> (sau accesați <a href="{% url 'formular_retur' %}" class="fw-bold text-dark text-decoration-underline">pagina dedicată formularului</a>), menționând numărul comenzii, numele dvs. și produsele pe care doriți să le returnați.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-3 border h-100 bg-light">
+                            <span class="step-badge">Pasul 2 • Pregătirea coletului</span>
+                            <p class="small mb-0" style="line-height: 1.75;">
+                                Ambalați produsele cu grijă, preferabil într-o cutie de carton solidă de transport, pentru a evita orice deteriorare a tocului sau a ochelarilor în timpul curieratului.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-3 border h-100 bg-light">
+                            <span class="step-badge">Pasul 3 • Expedierea</span>
+                            <p class="small mb-0" style="line-height: 1.75;">
+                                Trimiteți coletul la adresa: <strong>Strada Avram Iancu 34, Satu Mare, România, 447230</strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Costurile de transport -->
+            <div class="policy-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">5</span>
+                    <h2 class="policy-section-title">Costurile de transport</h2>
+                </div>
+                <p class="mb-3" style="line-height: 1.8;">
+                    Costul transportului pentru returnarea produselor este suportat integral de către client.
+                </p>
+                <div class="policy-note mb-0">
+                    <strong>Excepție:</strong> În cazul în care ați primit un produs cu defect de fabricație, un produs greșit sau care nu corespunde specificațiilor din comandă, costurile de retur și de înlocuire vor fi suportate integral de magazinul nostru.
+                </div>
+            </div>
+
+            <!-- 6. Procesul de rambursare a sumei -->
+            <div class="policy-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">6</span>
+                    <h2 class="policy-section-title">Procesul de rambursare a sumei</h2>
+                </div>
+                <p class="mb-3" style="line-height: 1.8;">
+                    După recepționarea coletului în depozitul nostru și verificarea stării produselor, vă vom trimite un e-mail de confirmare privind aprobarea sau respingerea returului.
+                </p>
+                <p class="mb-3" style="line-height: 1.8;">
+                    Dacă returul este aprobat, contravaloarea produselor va fi rambursată în termen de <strong>maxim 14 zile calendaristice</strong> de la aprobare.
+                </p>
+                <p class="mb-0" style="line-height: 1.8;">
+                    Rambursarea se va face prin transfer bancar în contul IBAN specificat de dumneavoastră în <a href="#formular-retur" class="text-dark fw-bold text-decoration-underline">formularul de retur</a> sau prin restituire automată pe cardul utilizat pentru plata comenzii inițiale. <strong>Nu se fac rambursări în numerar.</strong>
+                </p>
+            </div>
+
+            <!-- 7. Schimbul de produse -->
+            <div class="policy-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="policy-number">7</span>
+                    <h2 class="policy-section-title">Schimbul de produse</h2>
+                </div>
+                <p class="mb-0" style="line-height: 1.8;">
+                    Dacă doriți să schimbați o ramă sau o pereche de ochelari de soare cu un alt model sau o altă culoare, procedura presupune returnarea produsului inițial (parcurgând pașii de mai sus pentru rambursare) și plasarea unei comenzi noi, independente, pe site-ul nostru pentru articolul dorit.
+                </p>
+            </div>
+
+            <!-- FORMULAR DE RETUR SECTION -->
+            <div id="formular-retur" class="return-form-wrapper mt-5">
+                <div class="text-center mb-4 pb-2 border-bottom">
+                    <span class="text-uppercase small fw-bold text-muted d-block mb-1" style="letter-spacing: 2px;">Notificare Online</span>
+                    <h2 class="premium-heading display-6 fw-bold mb-2">Formular de Retur</h2>
+                    <p class="text-muted small mb-0">
+                        Completați câmpurile de mai jos pentru a înregistra solicitarea de retur în termenul legal de 14 zile calendaristice.
+                    </p>
+                </div>
+
+                {% include 'partials/return_form_fields.html' %}
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

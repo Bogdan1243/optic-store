@@ -254,7 +254,14 @@
             {% endif %}
             <p class="text-muted text-uppercase small mb-4" style="letter-spacing: 2px;">Colecția {% if product.category == 'SUN' %}Ochelari de soare{% else %}Ochelari de vedere{% endif %}</p>
 
-            <h3 class="fw-light mb-4 text-dark">{{ product.price }} RON</h3>
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <h3 class="fw-light mb-0 text-dark">{{ product.price }} RON</h3>
+                {% if product.in_stock %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-0 text-uppercase px-2 py-1" style="font-size: 0.7rem; letter-spacing: 1px;">În stoc</span>
+                {% else %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-0 text-uppercase px-2 py-1" style="font-size: 0.7rem; letter-spacing: 1px;">Stoc epuizat</span>
+                {% endif %}
+            </div>
 
             <div class="mb-4">
                 <p class="text-muted" style="line-height: 1.8;">
@@ -274,9 +281,9 @@
                     {% for variant in variants %}
                         <a href="{% url 'product_detail' variant.slug %}" 
                            class="color-variant-pill d-inline-flex align-items-center gap-2 text-decoration-none px-3 py-2 border {% if variant.id == product.id %}border-dark bg-white fw-bold shadow-sm{% else %}border-light-subtle bg-white text-muted opacity-75{% endif %}"
-                           title="Schimbă pe culoarea {{ variant.color }}">
+                           title="Schimbă pe culoarea {{ variant.color }}{% if not variant.in_stock %} (Stoc epuizat){% endif %}">
                             <span class="rounded-circle d-inline-block border" style="width: 14px; height: 14px; background-color: {{ variant.get_color_hex_default }};"></span>
-                            <span class="small">{{ variant.color }}</span>
+                            <span class="small {% if not variant.in_stock %}text-decoration-line-through text-muted{% endif %}">{{ variant.color }}</span>
                         </a>
                     {% endfor %}
                 </div>
@@ -423,7 +430,11 @@
             </div>
 
             <div class="d-grid gap-3 mb-5">
-                {% if product.category == 'OPT' and prescription_enabled %}
+                {% if not product.in_stock %}
+                    <button type="button" class="btn btn-secondary rounded-0 py-3 text-uppercase small fw-bold" style="letter-spacing: 2px; cursor: not-allowed; opacity: 0.65;" disabled>
+                        Stoc Epuizat
+                    </button>
+                {% elif product.category == 'OPT' and prescription_enabled %}
                     <button type="button" class="btn btn-premium py-3" data-bs-toggle="modal" data-bs-target="#prescriptionModal">
                         Configurează Dioptriile
                     </button>
@@ -845,6 +856,10 @@ $(document).on('click', '#add-cart', function(e){
                 btn.text(originalText);
                 btn.removeClass('bg-success');
             }, 2000);
+        },
+        error: function(xhr){
+            const msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Acest produs nu mai este în stoc.';
+            alert(msg);
         }
     });
 });
@@ -885,6 +900,10 @@ $(document).on('click', '#add-cart-prescription', function(e){
             setTimeout(() => {
                 mainBtn.text(originalText);
             }, 2000);
+        },
+        error: function(xhr){
+            const msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Acest produs nu mai este în stoc.';
+            alert(msg);
         }
     });
 });

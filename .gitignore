@@ -11,3 +11,4 @@ db.sqlite3
 media/staticfiles/
 media/
 *.zip
+tmp_fixtures/

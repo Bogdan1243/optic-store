@@ -41,8 +41,9 @@ class ProductImageInline(admin.TabularInline):
 
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = ('brand', 'model_code', 'slug', 'category', 'color', 'color_hex', 'size', 'price', 'sex', 'created_at')
-    list_filter = ('category', 'sex', 'progressive_friendly', 'frame_shape')
+    list_display = ('brand', 'model_code', 'slug', 'category', 'color', 'color_hex', 'size', 'price', 'stock', 'sex', 'created_at')
+    list_editable = ('stock',)
+    list_filter = ('category', 'sex', 'stock', 'progressive_friendly', 'frame_shape')
     search_fields = ('brand', 'model_code', 'slug', 'color', 'description')
     readonly_fields = ('slug',)
     inlines = [ProductImageInline]
@@ -50,7 +51,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Informații de Bază', {
-            'fields': ('brand', 'model_code', 'slug', 'price', 'category', 'sex', 'color', 'color_hex', 'size', 'description', 'image', 'ar_image', 'batch_images')
+            'fields': ('brand', 'model_code', 'slug', 'price', 'stock', 'category', 'sex', 'color', 'color_hex', 'size', 'description', 'image', 'ar_image', 'batch_images')
         }),
         ('Specificații Cadru', {
             'fields': ('frame_shape', 'frame_material', 'frame_finish', 'rim_type', 'bridge_length', 'temple_length', 'hinge_to_hinge')
