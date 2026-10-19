@@ -379,6 +379,8 @@ def import_products_from_excel(excel_file_or_path, zip_file_or_path=None, image_
             if idx is not None and idx < len(row_values):
                 val = row_values[idx]
                 if val is not None:
+                    if isinstance(val, float) and val.is_integer() and key != 'price':
+                        return str(int(val))
                     return str(val).strip()
             return default
 
