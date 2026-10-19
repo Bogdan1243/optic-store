@@ -22,20 +22,28 @@ def sync_product_specs(apps, schema_editor):
         'face_shape', 'progressive_friendly', 'age_group'
     ]
 
+    all_products = list(Product.objects.all())
+    by_id = {p.id: p for p in all_products}
+    by_slug = {p.slug: p for p in all_products if p.slug}
+    by_model_color = {(p.model_code, p.color): p for p in all_products if p.model_code}
+
+    to_update = []
+    seen_pks = set()
     for row in rows:
-        product = Product.objects.filter(pk=row['id']).first()
-        if not product and row.get('slug'):
-            product = Product.objects.filter(slug=row['slug']).first()
-        if not product and row.get('model_code'):
-            product = Product.objects.filter(
-                model_code=row['model_code'],
-                color=row['color']
-            ).first()
-        if product:
+        product = (
+            by_id.get(row['id'])
+            or (by_slug.get(row.get('slug')) if row.get('slug') else None)
+            or (by_model_color.get((row.get('model_code'), row.get('color'))) if row.get('model_code') else None)
+        )
+        if product and product.pk not in seen_pks:
             for field in update_fields:
                 if field in row:
                     setattr(product, field, row[field])
-            product.save(update_fields=update_fields)
+            to_update.append(product)
+            seen_pks.add(product.pk)
+
+    if to_update:
+        Product.objects.bulk_update(to_update, update_fields, batch_size=100)
 
 
 class Migration(migrations.Migration):
