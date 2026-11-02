@@ -156,7 +156,27 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# --- Media storage: Cloudflare R2 (S3-compatible) or Cloudinary (legacy) ---
+# Flip USE_R2_STORAGE=True only after running migrate_cloudinary_to_r2.py
+USE_R2_STORAGE = os.getenv('USE_R2_STORAGE', 'False') == 'True'
+
+if USE_R2_STORAGE:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('R2_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = f"https://{os.getenv('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
+    AWS_S3_REGION_NAME = 'auto'
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('R2_PUBLIC_DOMAIN')  # public URLs: https://<domain>/<key>
+    AWS_S3_URL_PROTOCOL = 'https:'
+    AWS_DEFAULT_ACL = None          # R2 does not support ACLs
+    AWS_QUERYSTRING_AUTH = False    # plain public URLs, no signatures
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'public, max-age=31536000, immutable'}
+else:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

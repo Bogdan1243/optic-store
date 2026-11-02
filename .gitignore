@@ -12,3 +12,5 @@ media/staticfiles/
 media/
 *.zip
 tmp_fixtures/
+
+r2_migration_log.json*
