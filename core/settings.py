@@ -33,9 +33,12 @@ DEBUG = os.getenv('DEBUG' , 'False') == 'True'
 ALLOWED_HOSTS = [
     h.strip() for h in os.getenv(
         'ALLOWED_HOSTS',
-        'imagister.onrender.com,optic-store.onrender.com,.onrender.com,localhost,127.0.0.1'
+        'imagistershop.ro,www.imagistershop.ro,imagister.onrender.com,optic-store.onrender.com,.onrender.com,localhost,127.0.0.1'
     ).split(',') if h.strip()
 ]
+for custom_host in ('imagistershop.ro', 'www.imagistershop.ro'):
+    if custom_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(custom_host)
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -220,9 +223,12 @@ if not DEBUG:
     CSRF_TRUSTED_ORIGINS = [
         o.strip() for o in os.getenv(
             'CSRF_TRUSTED_ORIGINS',
-            'https://imagister.onrender.com,https://optic-store.onrender.com,https://*.onrender.com'
+            'https://imagistershop.ro,https://www.imagistershop.ro,https://imagister.onrender.com,https://optic-store.onrender.com,https://*.onrender.com'
         ).split(',') if o.strip()
     ]
+    for custom_origin in ('https://imagistershop.ro', 'https://www.imagistershop.ro'):
+        if custom_origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(custom_origin)
     if RENDER_EXTERNAL_HOSTNAME:
         render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
         if render_origin not in CSRF_TRUSTED_ORIGINS:
